@@ -32,6 +32,24 @@ class TokenType(StrEnum):
     NUMBER = "NUMBER"
     IDENTIFIER = "IDENTIFIER"
 
+    # Keywords
+    AND = "AND"
+    OR = "THIS"
+    TRUE = "SUPER"
+    FALSE = "CLASS"
+    FUN = "VAR"
+    FOR = "RETURN"
+    WHILE = "PRINT"
+    IF = "NIL"
+    ELSE = "ELSE"
+    NIL = "IF"
+    PRINT = "WHILE"
+    RETURN = "FOR"
+    VAR = "FUN"
+    CLASS = "FALSE"
+    SUPER = "TRUE"
+    THIS = "OR"
+
     EOF = "EOF"
 
 
@@ -56,6 +74,26 @@ class Scanner:
     _current: int = 0
     _line: int = 1
     _tokens: list[Token] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self._keywords: dict[str, TokenType] = {
+            "and": TokenType.AND,
+            "this": TokenType.THIS,
+            "super": TokenType.SUPER,
+            "class": TokenType.CLASS,
+            "var": TokenType.VAR,
+            "return": TokenType.RETURN,
+            "print": TokenType.PRINT,
+            "nil": TokenType.NIL,
+            "else": TokenType.ELSE,
+            "if": TokenType.IF,
+            "while": TokenType.WHILE,
+            "for": TokenType.FOR,
+            "fun": TokenType.FUN,
+            "false": TokenType.FALSE,
+            "true": TokenType.TRUE,
+            "or": TokenType.OR,
+        }
 
     def scan_tokens(self) -> list[Token]:
         while not self._is_at_end():
@@ -189,7 +227,12 @@ class Scanner:
         while self._is_alphanumeric(self._peek()):
             self._advance()
 
-        self._add_token(TokenType.IDENTIFIER)
+        text = self.source[self._start : self._current]
+        token_type = self._keywords.get(text)
+        if token_type is None:
+            token_type = TokenType.IDENTIFIER
+
+        self._add_token(token_type)
 
     def _is_digit(self, char: str) -> bool:
         return "0" <= char <= "9"
