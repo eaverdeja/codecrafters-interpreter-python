@@ -11,6 +11,8 @@ class ScanError(ValueError):
 class TokenType(StrEnum):
     LEFT_PAREN = "LEFT_PAREN"
     RIGHT_PAREN = "RIGHT_PAREN"
+    LEFT_BRACE = "LEFT_BRACE"
+    RIGHT_BRACE = "RIGHT_BRACE"
     EOF = "EOF"
 
 
@@ -52,6 +54,10 @@ class Scanner:
                 self._add_token(TokenType.LEFT_PAREN)
             case ")":
                 self._add_token(TokenType.RIGHT_PAREN)
+            case "{":
+                self._add_token(TokenType.LEFT_BRACE)
+            case "}":
+                self._add_token(TokenType.RIGHT_BRACE)
             case _:
                 raise ScanError(self._line, "Unexpected character")
 
