@@ -1,11 +1,6 @@
 from dataclasses import dataclass, field
 from enum import StrEnum
-
-
-class ScanError(ValueError):
-    def __init__(self, line: int, message: str) -> None:
-        self.line = line
-        self.message = message
+from typing import Callable
 
 
 class TokenType(StrEnum):
@@ -29,7 +24,7 @@ class Token:
     literal: None
     line: int
 
-    def __str__(self):
+    def __str__(self) -> str:
         literal = self.literal or "null"
         return f"{self.token_type} {self.lexeme} {literal}"
 
@@ -37,6 +32,8 @@ class Token:
 @dataclass
 class Scanner:
     source: str
+    error_reporter: Callable[..., None]
+
     _start: int = 0
     _current: int = 0
     _line: int = 1
@@ -76,8 +73,8 @@ class Scanner:
                 self._add_token(TokenType.SEMICOLON)
             case "*":
                 self._add_token(TokenType.STAR)
-            case _:
-                raise ScanError(self._line, "Unexpected character")
+            case default:
+                self.error_reporter(self._line, f"Unexpected character: {default}")
 
     def _advance(self) -> str:
         char = self.source[self._current]

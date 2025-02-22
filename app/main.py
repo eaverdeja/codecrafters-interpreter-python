@@ -1,11 +1,8 @@
 import sys
-import os
-from dataclasses import dataclass
 
-from app.scanner import ScanError, Scanner
+from app.scanner import Scanner
 
 
-@dataclass
 class Pylox:
     _had_error = False
 
@@ -51,18 +48,14 @@ class Pylox:
             self._had_error = False
 
     def run(self, source: str) -> None:
-        scanner = Scanner(source)
-        try:
-            tokens = scanner.scan_tokens()
-        except ScanError as e:
-            self._error(e.line, e.message)
-            return
+        scanner = Scanner(source, error_reporter=self.error)
+        tokens = scanner.scan_tokens()
 
         for token in tokens:
             print(token)
 
-    def _error(self, line: int, message: str) -> None:
-        sys.stderr.write(f"[line {line}] Error: {message}")
+    def error(self, line: int, message: str) -> None:
+        sys.stderr.write(f"[line {line}] Error: {message}\n")
         self._had_error = True
 
 
