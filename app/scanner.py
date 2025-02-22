@@ -29,6 +29,7 @@ class TokenType(StrEnum):
 
     # Literals
     STRING = "STRING"
+    NUMBER = "NUMBER"
 
     EOF = "EOF"
 
@@ -114,6 +115,8 @@ class Scanner:
                     self._add_token(TokenType.SLASH)
             case '"':
                 self._string()
+            case "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9":
+                self._number()
             case " " | "\r" | "\t":
                 # Ignore whitespace
                 pass
@@ -141,6 +144,11 @@ class Scanner:
             return "\n"
         return self.source[self._current]
 
+    def _peek_next(self) -> str:
+        if self._current + 1 >= len(self.source):
+            return "\n"
+        return self.source[self._current + 1]
+
     def _string(self) -> None:
         while self._peek() != '"' and not self._is_at_end():
             if self._peek() == "\n":
@@ -155,6 +163,24 @@ class Scanner:
 
         value = self.source[self._start + 1 : self._current - 1]
         self._add_token(TokenType.STRING, value)
+
+    def _number(self) -> None:
+        while self._is_digit(self._peek()):
+            self._advance()
+
+        # Look for fractional part
+        if self._peek() == "." and self._is_digit(self._peek_next()):
+            # Consume the "."
+            self._advance()
+
+            while self._is_digit(self._peek()):
+                self._advance()
+
+        value = float(self.source[self._start : self._current])
+        self._add_token(TokenType.NUMBER, value)
+
+    def _is_digit(self, char: str) -> bool:
+        return "0" <= char <= "9"
 
     def _add_token(self, token: TokenType, literal: object | None = None) -> None:
         text = self.source[self._start : self._current]
