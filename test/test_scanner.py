@@ -104,3 +104,22 @@ class TestScanTokens:
             Token(token_type=TokenType.MINUS, lexeme="-", literal=None, line=1),
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
         ]
+
+    def test_multiline_errors(self):
+        source = """# (
+        )   @
+        """
+        error_reporter = MagicMock()
+        scanner = Scanner(source=source, error_reporter=error_reporter)
+
+        tokens = scanner.scan_tokens()
+
+        error_reporter.assert_has_calls(
+            [call(1, "Unexpected character: #")], [call(2, "Unexpected character: @")]
+        )
+
+        assert tokens == [
+            Token(token_type=TokenType.LEFT_PAREN, lexeme="(", literal=None, line=1),
+            Token(token_type=TokenType.RIGHT_PAREN, lexeme=")", literal=None, line=2),
+            Token(token_type=TokenType.EOF, lexeme="", literal=None, line=3),
+        ]
