@@ -15,6 +15,7 @@ class TokenType(StrEnum):
     PLUS = "PLUS"
     SEMICOLON = "SEMICOLON"
     STAR = "STAR"
+    SLASH = "SLASH"
 
     # One or two character tokens
     BANG = "BANG"
@@ -101,6 +102,18 @@ class Scanner:
                 self._add_token(
                     TokenType.LESS_EQUAL if self._match("=") else TokenType.LESS
                 )
+            case "/":
+                if self._match("/"):
+                    # A comment goes until the end of the line
+                    while self._peek() != "\n":
+                        self._advance()
+                else:
+                    self._add_token(TokenType.SLASH)
+            case " " | "\r" | "\t":
+                # Ignore whitespace
+                pass
+            case "\n":
+                self._line += 1
             case default:
                 self.error_reporter(self._line, f"Unexpected character: {default}")
 
@@ -117,6 +130,11 @@ class Scanner:
 
         self._current += 1
         return True
+
+    def _peek(self) -> str:
+        if self._is_at_end():
+            return "\n"
+        return self.source[self._current]
 
     def _add_token(self, token: TokenType, literal: None = None) -> None:
         text = self.source[self._start : self._current]
