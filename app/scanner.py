@@ -30,6 +30,7 @@ class TokenType(StrEnum):
     # Literals
     STRING = "STRING"
     NUMBER = "NUMBER"
+    IDENTIFIER = "IDENTIFIER"
 
     EOF = "EOF"
 
@@ -115,14 +116,19 @@ class Scanner:
                     self._add_token(TokenType.SLASH)
             case '"':
                 self._string()
-            case "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9":
-                self._number()
             case " " | "\r" | "\t":
                 # Ignore whitespace
                 pass
             case "\n":
                 self._line += 1
             case default:
+                if self._is_digit(c):
+                    self._number()
+                    return
+                if self._is_alpha(c):
+                    self._identifier()
+                    return
+
                 self.error_reporter(self._line, f"Unexpected character: {default}")
 
     def _advance(self) -> str:
@@ -179,8 +185,24 @@ class Scanner:
         value = float(self.source[self._start : self._current])
         self._add_token(TokenType.NUMBER, value)
 
+    def _identifier(self) -> None:
+        while self._is_alphanumeric(self._peek()):
+            self._advance()
+
+        self._add_token(TokenType.IDENTIFIER)
+
     def _is_digit(self, char: str) -> bool:
         return "0" <= char <= "9"
+
+    def _is_alpha(self, char: str) -> bool:
+        return (
+            (char >= "a" and char <= "z")
+            or (char >= "A" and char <= "Z")
+            or char == "_"
+        )
+
+    def _is_alphanumeric(self, char) -> bool:
+        return self._is_digit(char) or self._is_alpha(char)
 
     def _add_token(self, token: TokenType, literal: object | None = None) -> None:
         text = self.source[self._start : self._current]

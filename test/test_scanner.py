@@ -126,6 +126,17 @@ class TestScanTokens:
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
         ]
 
+    def test_identifiers(self):
+        scanner = Scanner(source="foo bar", error_reporter=MagicMock())
+
+        tokens = scanner.scan_tokens()
+
+        assert tokens == [
+            Token(token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="bar", literal=None, line=1),
+            Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
+        ]
+
     def test_lexical_errors(self):
         error_reporter = MagicMock()
         scanner = Scanner(source="%$-", error_reporter=error_reporter)
