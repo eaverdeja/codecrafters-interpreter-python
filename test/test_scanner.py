@@ -90,6 +90,32 @@ class TestScanTokens:
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=5),
         ]
 
+    def test_strings(self):
+        source = '("world"+"hello") != "other_string"'
+        scanner = Scanner(source=source, error_reporter=MagicMock())
+
+        tokens = scanner.scan_tokens()
+
+        assert tokens == [
+            Token(token_type=TokenType.LEFT_PAREN, lexeme="(", literal=None, line=1),
+            Token(
+                token_type=TokenType.STRING, lexeme='"world"', literal="world", line=1
+            ),
+            Token(token_type=TokenType.PLUS, lexeme="+", literal=None, line=1),
+            Token(
+                token_type=TokenType.STRING, lexeme='"hello"', literal="hello", line=1
+            ),
+            Token(token_type=TokenType.RIGHT_PAREN, lexeme=")", literal=None, line=1),
+            Token(token_type=TokenType.BANG_EQUAL, lexeme="!=", literal=None, line=1),
+            Token(
+                token_type=TokenType.STRING,
+                lexeme='"other_string"',
+                literal="other_string",
+                line=1,
+            ),
+            Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
+        ]
+
     def test_lexical_errors(self):
         error_reporter = MagicMock()
         scanner = Scanner(source="%$-", error_reporter=error_reporter)

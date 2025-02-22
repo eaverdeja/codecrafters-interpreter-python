@@ -27,6 +27,9 @@ class TokenType(StrEnum):
     LESS = "LESS"
     LESS_EQUAL = "LESS_EQUAL"
 
+    # Literals
+    STRING = "STRING"
+
     EOF = "EOF"
 
 
@@ -34,7 +37,7 @@ class TokenType(StrEnum):
 class Token:
     token_type: TokenType
     lexeme: str
-    literal: None
+    literal: object
     line: int
 
     def __str__(self) -> str:
@@ -109,6 +112,8 @@ class Scanner:
                         self._advance()
                 else:
                     self._add_token(TokenType.SLASH)
+            case '"':
+                self._string()
             case " " | "\r" | "\t":
                 # Ignore whitespace
                 pass
@@ -136,6 +141,21 @@ class Scanner:
             return "\n"
         return self.source[self._current]
 
-    def _add_token(self, token: TokenType, literal: None = None) -> None:
+    def _string(self) -> None:
+        while self._peek() != '"' and not self._is_at_end():
+            if self._peek() == "\n":
+                self._line += 1
+            self._advance()
+        if self._is_at_end():
+            self.error_reporter(self._line, "Unterminated string.")
+            return
+
+        # The closing "
+        self._advance()
+
+        value = self.source[self._start + 1 : self._current - 1]
+        self._add_token(TokenType.STRING, value)
+
+    def _add_token(self, token: TokenType, literal: object | None = None) -> None:
         text = self.source[self._start : self._current]
         self._tokens.append(Token(token, text, literal, self._line))
