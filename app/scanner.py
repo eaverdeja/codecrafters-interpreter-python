@@ -23,8 +23,8 @@ class TokenType(StrEnum):
     EQUAL_EQUAL = "EQUAL_EQUAL"
     GREATER = "GREATER"
     GREATER_EQUAL = "GREATER_EQUAL"
-    LESSER = "LESSER"
-    LESSER_EQUAL = "LESSER_EQUAL"
+    LESS = "LESS"
+    LESS_EQUAL = "LESS_EQUAL"
 
     EOF = "EOF"
 
@@ -99,7 +99,7 @@ class Scanner:
                 )
             case "<":
                 self._add_token(
-                    TokenType.LESSER_EQUAL if self._match("=") else TokenType.LESSER
+                    TokenType.LESS_EQUAL if self._match("=") else TokenType.LESS
                 )
             case default:
                 self.error_reporter(self._line, f"Unexpected character: {default}")

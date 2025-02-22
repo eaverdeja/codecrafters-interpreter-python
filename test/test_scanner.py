@@ -48,14 +48,14 @@ class TestScanTokens:
         assert tokens == [
             Token(token_type=TokenType.EQUAL_EQUAL, lexeme="==", literal=None, line=1),
             Token(token_type=TokenType.EQUAL, lexeme="=", literal=None, line=1),
-            Token(token_type=TokenType.LESSER_EQUAL, lexeme="<=", literal=None, line=1),
+            Token(token_type=TokenType.LESS_EQUAL, lexeme="<=", literal=None, line=1),
             Token(token_type=TokenType.GREATER, lexeme=">", literal=None, line=1),
             Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
             Token(token_type=TokenType.BANG_EQUAL, lexeme="!=", literal=None, line=1),
             Token(
                 token_type=TokenType.GREATER_EQUAL, lexeme=">=", literal=None, line=1
             ),
-            Token(token_type=TokenType.LESSER, lexeme="<", literal=None, line=1),
+            Token(token_type=TokenType.LESS, lexeme="<", literal=None, line=1),
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
         ]
 
