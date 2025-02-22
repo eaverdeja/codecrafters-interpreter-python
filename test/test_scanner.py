@@ -137,6 +137,60 @@ class TestScanTokens:
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
         ]
 
+    def test_keywords(self):
+        source = "IF PRINT class TRUE true false VAR this if FALSE OR RETURN else FUN NIL FOR for print nil and return CLASS THIS var ELSE or SUPER fun super AND while WHILE"
+        scanner = Scanner(source=source, error_reporter=MagicMock())
+
+        tokens = scanner.scan_tokens()
+
+        assert tokens == [
+            Token(token_type=TokenType.IDENTIFIER, lexeme="IF", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="PRINT", literal=None, line=1
+            ),
+            Token(token_type=TokenType.CLASS, lexeme="class", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="TRUE", literal=None, line=1),
+            Token(token_type=TokenType.TRUE, lexeme="true", literal=None, line=1),
+            Token(token_type=TokenType.FALSE, lexeme="false", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="VAR", literal=None, line=1),
+            Token(token_type=TokenType.THIS, lexeme="this", literal=None, line=1),
+            Token(token_type=TokenType.IF, lexeme="if", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="FALSE", literal=None, line=1
+            ),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="OR", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="RETURN", literal=None, line=1
+            ),
+            Token(token_type=TokenType.ELSE, lexeme="else", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="FUN", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="NIL", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="FOR", literal=None, line=1),
+            Token(token_type=TokenType.FOR, lexeme="for", literal=None, line=1),
+            Token(token_type=TokenType.PRINT, lexeme="print", literal=None, line=1),
+            Token(token_type=TokenType.NIL, lexeme="nil", literal=None, line=1),
+            Token(token_type=TokenType.AND, lexeme="and", literal=None, line=1),
+            Token(token_type=TokenType.RETURN, lexeme="return", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="CLASS", literal=None, line=1
+            ),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="THIS", literal=None, line=1),
+            Token(token_type=TokenType.VAR, lexeme="var", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="ELSE", literal=None, line=1),
+            Token(token_type=TokenType.OR, lexeme="or", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="SUPER", literal=None, line=1
+            ),
+            Token(token_type=TokenType.FUN, lexeme="fun", literal=None, line=1),
+            Token(token_type=TokenType.SUPER, lexeme="super", literal=None, line=1),
+            Token(token_type=TokenType.IDENTIFIER, lexeme="AND", literal=None, line=1),
+            Token(token_type=TokenType.WHILE, lexeme="while", literal=None, line=1),
+            Token(
+                token_type=TokenType.IDENTIFIER, lexeme="WHILE", literal=None, line=1
+            ),
+            Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
+        ]
+
     def test_lexical_errors(self):
         error_reporter = MagicMock()
         scanner = Scanner(source="%$-", error_reporter=error_reporter)

@@ -34,21 +34,21 @@ class TokenType(StrEnum):
 
     # Keywords
     AND = "AND"
-    OR = "THIS"
-    TRUE = "SUPER"
-    FALSE = "CLASS"
-    FUN = "VAR"
-    FOR = "RETURN"
-    WHILE = "PRINT"
-    IF = "NIL"
+    OR = "OR"
+    TRUE = "TRUE"
+    FALSE = "FALSE"
+    FUN = "FUN"
+    FOR = "FOR"
+    WHILE = "WHILE"
+    IF = "IF"
     ELSE = "ELSE"
-    NIL = "IF"
-    PRINT = "WHILE"
-    RETURN = "FOR"
-    VAR = "FUN"
-    CLASS = "FALSE"
-    SUPER = "TRUE"
-    THIS = "OR"
+    NIL = "NIL"
+    PRINT = "PRINT"
+    RETURN = "RETURN"
+    VAR = "VAR"
+    CLASS = "CLASS"
+    SUPER = "SUPER"
+    THIS = "THIS"
 
     EOF = "EOF"
 
@@ -61,7 +61,7 @@ class Token:
     line: int
 
     def __str__(self) -> str:
-        literal = self.literal or "null"
+        literal = self.literal if self.literal is not None else "null"
         return f"{self.token_type} {self.lexeme} {literal}"
 
 
