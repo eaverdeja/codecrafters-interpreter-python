@@ -40,6 +40,25 @@ class TestScanTokens:
             Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
         ]
 
+    def test_one_or_two_chars_lexemes(self):
+        scanner = Scanner(source="===<=>!!=>=<", error_reporter=MagicMock())
+
+        tokens = scanner.scan_tokens()
+
+        assert tokens == [
+            Token(token_type=TokenType.EQUAL_EQUAL, lexeme="==", literal=None, line=1),
+            Token(token_type=TokenType.EQUAL, lexeme="=", literal=None, line=1),
+            Token(token_type=TokenType.LESSER_EQUAL, lexeme="<=", literal=None, line=1),
+            Token(token_type=TokenType.GREATER, lexeme=">", literal=None, line=1),
+            Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
+            Token(token_type=TokenType.BANG_EQUAL, lexeme="!=", literal=None, line=1),
+            Token(
+                token_type=TokenType.GREATER_EQUAL, lexeme=">=", literal=None, line=1
+            ),
+            Token(token_type=TokenType.LESSER, lexeme="<", literal=None, line=1),
+            Token(token_type=TokenType.EOF, lexeme="", literal=None, line=1),
+        ]
+
     def test_lexical_errors(self):
         error_reporter = MagicMock()
         scanner = Scanner(source="%$-", error_reporter=error_reporter)
