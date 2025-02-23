@@ -11,6 +11,10 @@ from app.stmt import Stmt
 class Pylox:
     _had_error = False
     _had_runtime_error = False
+    _interpreter: Interpreter
+
+    def __init__(self) -> None:
+        self._interpreter = Interpreter(error_reporter=self.runtime_error)
 
     def main(self) -> None:
         if len(sys.argv) == 1:
@@ -38,7 +42,7 @@ class Pylox:
             case "evaluate":
                 expr = self.parse_file(filename)
                 if expr:
-                    res = Interpreter(error_reporter=self.runtime_error).interpret(expr)
+                    res = self._interpreter.interpret(expr)
                     if res:
                         print(res)
             case "run":
@@ -77,7 +81,7 @@ class Pylox:
         if self._had_error:
             return
 
-        Interpreter(error_reporter=self.runtime_error).interpret_all(stmts)
+        self._interpreter.interpret_all(stmts)
 
     def scan_file(self, filename: str) -> list[Token]:
         with open(filename) as file:
