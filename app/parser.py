@@ -82,11 +82,11 @@ class Parser:
 
     def _primary(self) -> Expr:
         if self._match(TokenType.FALSE):
-            return Literal(False)
+            return Literal("false")
         if self._match(TokenType.TRUE):
-            return Literal(True)
+            return Literal("true")
         if self._match(TokenType.NIL):
-            return Literal(None)
+            return Literal("nil")
 
         raise ValueError("Unrecognized primary value")
 
