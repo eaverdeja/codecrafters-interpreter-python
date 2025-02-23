@@ -14,7 +14,6 @@ class Parser:
     """
     Grammar
 
-    program        → statement* EOF ;
     program        → declaration* EOF ;
     declaration    → varDecl | statement ;
     statement      → exprStmt | printStmt ;
