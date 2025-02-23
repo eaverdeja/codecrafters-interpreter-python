@@ -1,4 +1,4 @@
-from app.expr import Binary, Expr, Literal, Unary, Visitor
+from app.expr import Binary, Expr, Grouping, Literal, Unary, Visitor
 from app.scanner import Token, TokenType
 
 
@@ -8,6 +8,9 @@ class AstPrinter(Visitor[str]):
 
     def visit_binary_expr(self, expr: Binary) -> str:
         return self._parenthisize(expr.operator.lexeme, expr.left, expr.right)
+
+    def visit_grouping_expr(self, expr: Grouping) -> str:
+        return self._parenthisize("group", expr.expression)
 
     def visit_literal_expr(self, expr: Literal):
         if expr.value is None:

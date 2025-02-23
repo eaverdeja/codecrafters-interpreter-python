@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.expr import Binary, Expr, Literal, Unary
+from app.expr import Binary, Expr, Grouping, Literal, Unary
 from app.scanner import Token, TokenType
 
 
@@ -89,6 +89,13 @@ class Parser:
             return Literal("nil")
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+
+        if self._match(TokenType.LEFT_PAREN):
+            expr = self._expression()
+            # Trust that this is a closing ) for now
+            # We'll come back to deal with syntax errors
+            self._advance()
+            return Grouping(expr)
 
         raise ValueError("Unrecognized primary value")
 

@@ -12,6 +12,9 @@ class Visitor(Generic[R]):
     def visit_binary_expr(self, expr: "Binary") -> R: ...
 
     @abstractmethod
+    def visit_grouping_expr(self, expr: "Grouping") -> R: ...
+
+    @abstractmethod
     def visit_literal_expr(self, expr: "Literal") -> R: ...
 
     @abstractmethod
@@ -31,6 +34,14 @@ class Binary(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_binary_expr(self)
+
+
+@dataclass
+class Grouping(Expr):
+    expression: Expr
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_grouping_expr(self)
 
 
 @dataclass

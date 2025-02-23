@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from app.expr import Binary, Literal
+from app.expr import Binary, Grouping, Literal
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 
@@ -41,3 +41,10 @@ class TestParser:
         expr = Parser(tokens).parse()
 
         assert expr == Literal(value="hello world")
+
+    def test_parses_groups(self):
+        tokens = Scanner(source='("foo")', error_reporter=MagicMock()).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Grouping(expression=Literal(value="foo"))
