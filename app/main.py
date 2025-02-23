@@ -2,6 +2,7 @@ import sys
 
 from app.ast_printer import AstPrinter
 from app.expr import Expr
+from app.interpreter import Interpreter
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 
@@ -30,7 +31,12 @@ class Pylox:
             case "parse":
                 expr = self.parse_file(filename)
                 if expr:
-                    res = AstPrinter().print(expr)
+                    ast = AstPrinter().print(expr)
+                    print(ast)
+            case "evaluate":
+                expr = self.parse_file(filename)
+                if expr:
+                    res = Interpreter().interpret(expr)
                     print(res)
             case _:
                 print(f"Unknown command: {command}", file=sys.stderr)
@@ -72,7 +78,7 @@ class Pylox:
             expr is not None
         ), "Expected valid expression since no errors were reported!"
 
-        res = AstPrinter().print(expr)
+        res = Interpreter().interpret(expr)
         print(res)
 
     def scan_file(self, filename: str) -> list[Token]:
