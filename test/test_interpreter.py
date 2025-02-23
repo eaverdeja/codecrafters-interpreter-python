@@ -39,3 +39,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == 3.14
+
+    def test_can_interpret_arbitrary_strings(self):
+        expr = self.generate_expression('"foo bar"')
+
+        res = Interpreter().interpret(expr)
+
+        assert res == "foo bar"
