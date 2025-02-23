@@ -1,4 +1,4 @@
-from app.expr import Expr, Literal, Visitor
+from app.expr import Expr, Grouping, Literal, Visitor
 
 
 class Interpreter(Visitor[object]):
@@ -10,6 +10,11 @@ class Interpreter(Visitor[object]):
             return int(expr.value)
         return expr.value
 
+    def visit_grouping_expr(self, expr: Grouping) -> object:
+        return self._evaluate(expr.expression)
+
     def visit_binary_expr(self, expr): ...
-    def visit_grouping_expr(self, expr): ...
     def visit_unary_expr(self, expr): ...
+
+    def _evaluate(self, expr: Expr) -> object:
+        return expr.accept(self)

@@ -46,3 +46,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == "foo bar"
+
+    def test_can_interpret_parentheses(self):
+        expr = self.generate_expression("((false))")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == "false"
