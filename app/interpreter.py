@@ -95,7 +95,7 @@ class Interpreter(Visitor[object]):
         return expr.accept(self)
 
     def _is_truthy(self, obj: object) -> bool:
-        if obj is None or obj == "nil":
+        if obj is None or obj == False or obj == "nil":
             return False
         return True
 
