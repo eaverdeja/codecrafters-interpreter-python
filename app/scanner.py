@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Callable
+from typing import Callable, Type
 
 
 class TokenType(StrEnum):
@@ -212,18 +212,22 @@ class Scanner:
         self._add_token(TokenType.STRING, value)
 
     def _number(self) -> None:
+        value_type: Type[int] | Type[float] = int
+
         while self._is_digit(self._peek()):
             self._advance()
 
         # Look for fractional part
         if self._peek() == "." and self._is_digit(self._peek_next()):
+            value_type = float
+
             # Consume the "."
             self._advance()
 
             while self._is_digit(self._peek()):
                 self._advance()
 
-        value = float(self.source[self._start : self._current])
+        value = value_type(self.source[self._start : self._current])
         self._add_token(TokenType.NUMBER, value)
 
     def _identifier(self) -> None:

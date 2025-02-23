@@ -25,3 +25,17 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == "nil"
+
+    def test_can_interpret_integers(self):
+        expr = self.generate_expression("42")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == 42
+
+    def test_can_interpret_floating_point_numbers(self):
+        expr = self.generate_expression("3.14")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == 3.14
