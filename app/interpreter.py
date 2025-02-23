@@ -52,6 +52,10 @@ class Interpreter(Visitor[object]):
                 return self._to_lox_bool(left < right)  # type:ignore
             case TokenType.LESS_EQUAL:
                 return self._to_lox_bool(left <= right)  # type:ignore
+            case TokenType.BANG_EQUAL:
+                return self._to_lox_bool(left != right)  # type:ignore
+            case TokenType.EQUAL_EQUAL:
+                return self._to_lox_bool(left == right)  # type:ignore
         return None
 
     def _evaluate(self, expr: Expr) -> object:

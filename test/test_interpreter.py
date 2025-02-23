@@ -95,3 +95,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == "true"
+
+    def test_can_interpret_equality_operators(self):
+        expr = self.generate_expression("156 == (89 + 67)")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == "true"
