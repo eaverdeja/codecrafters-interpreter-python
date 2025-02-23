@@ -1,5 +1,4 @@
 from app.expr import Binary, Expr, Literal, Unary, Visitor
-from app.parser import Parser
 from app.scanner import Token, TokenType
 
 
