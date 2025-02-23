@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from app.expr import Binary, Expr, Grouping, Literal, Unary
+from app.expr import Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
-from app.stmt import Expression, Print, Stmt
+from app.stmt import Expression, Print, Stmt, Var
 
 
 class ParseError(RuntimeError): ...
@@ -15,6 +15,8 @@ class Parser:
     Grammar
 
     program        → statement* EOF ;
+    program        → declaration* EOF ;
+    declaration    → varDecl | statement ;
     statement      → exprStmt | printStmt ;
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
@@ -25,7 +27,11 @@ class Parser:
     term           → factor ( ( "-" | "+" ) factor )* ;
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary | primary ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    primary        → "true" | "false" | "nil"
+                    | NUMBER | STRING
+                    | "(" expression ")"
+                    | IDENTIFIER ;
+    varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
     """
 
     tokens: list[Token]
@@ -42,11 +48,9 @@ class Parser:
     def parse_all(self) -> list[Stmt]:
         statements: list[Stmt] = []
         while not self._is_at_end():
-            try:
-                statements.append(self._statement())
-            except ParseError:
-                # Advance and forget for now - we'll revisit this
-                self._advance()
+            declaration = self._declaration()
+            if declaration:
+                statements.append(declaration)
         return statements
 
     def _expression(self) -> Expr:
@@ -114,6 +118,8 @@ class Parser:
             return Literal("nil")
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+        if self._match(TokenType.IDENTIFIER):
+            return Variable(self._previous())
 
         if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()
@@ -121,6 +127,16 @@ class Parser:
             return Grouping(expr)
 
         raise self._error(self._peek(), "Expect expression.")
+
+    def _declaration(self) -> Stmt | None:
+        try:
+            if self._match(TokenType.VAR):
+                return self._var_declaration()
+
+            return self._statement()
+        except ParseError:
+            self._synchronize()
+            return None
 
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
@@ -136,6 +152,15 @@ class Parser:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
+
+    def _var_declaration(self) -> Stmt:
+        name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
+        initializer: Expr | None = None
+        if self._match(TokenType.EQUAL):
+            initializer = self._expression()
+
+        self._consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        return Var(name, initializer)
 
     def _match(self, *types: TokenType) -> bool:
         for token_type in types:
@@ -162,6 +187,25 @@ class Parser:
     def _error(self, token: Token, message: str) -> ParseError:
         self.error_reporter(token, message)
         return ParseError(message)
+
+    def _synchronize(self):
+        self._advance()
+        while not self._is_at_end():
+            if self._previous().token_type == TokenType.SEMICOLON:
+                return
+            match self._peek().type:
+                case (
+                    TokenType.CLASS
+                    | TokenType.FUN
+                    | TokenType.VAR
+                    | TokenType.FOR
+                    | TokenType.IF
+                    | TokenType.WHILE
+                    | TokenType.PRINT
+                    | TokenType.RETURN
+                ):
+                    return
+            self._advance()
 
     def _is_at_end(self) -> bool:
         return self._peek().token_type == TokenType.EOF
