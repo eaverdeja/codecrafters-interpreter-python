@@ -2,13 +2,14 @@ import sys
 
 from app.ast_printer import AstPrinter
 from app.expr import Expr
-from app.interpreter import Interpreter
+from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 
 
 class Pylox:
     _had_error = False
+    _had_runtime_error = False
 
     def main(self) -> None:
         if len(sys.argv) == 1:
@@ -36,23 +37,21 @@ class Pylox:
             case "evaluate":
                 expr = self.parse_file(filename)
                 if expr:
-                    res = Interpreter().interpret(expr)
-                    print(res)
+                    res = Interpreter(error_reporter=self.runtime_error).interpret(expr)
+                    if res:
+                        print(res)
             case _:
                 print(f"Unknown command: {command}", file=sys.stderr)
                 exit(1)
 
-        if self._had_error:
-            exit(65)
+        self._handle_errors()
 
     def run_file(self, filename: str) -> None:
         with open(filename) as file:
             file_contents = file.read()
 
         self.run(file_contents)
-
-        if self._had_error:
-            exit(65)
+        self._handle_errors()
 
     def run_prompt(self) -> None:
         while True:
@@ -78,8 +77,9 @@ class Pylox:
             expr is not None
         ), "Expected valid expression since no errors were reported!"
 
-        res = Interpreter().interpret(expr)
-        print(res)
+        res = Interpreter(error_reporter=self.runtime_error).interpret(expr)
+        if res is not None:
+            print(res)
 
     def scan_file(self, filename: str) -> list[Token]:
         with open(filename) as file:
@@ -106,9 +106,19 @@ class Pylox:
         else:
             self._report(token.line, f" at '{token.lexeme}'", message)
 
+    def runtime_error(self, error: RuntimeException) -> None:
+        sys.stderr.write(f"{str(error)} \n[line {error.token.line}]")
+        self._had_runtime_error = True
+
     def _report(self, line: int, where: str, message: str):
         sys.stderr.write(f"[line {line}] Error{where}: {message}\n")
         self._had_error = True
+
+    def _handle_errors(self) -> None:
+        if self._had_error:
+            exit(65)
+        if self._had_runtime_error:
+            exit(70)
 
 
 if __name__ == "__main__":

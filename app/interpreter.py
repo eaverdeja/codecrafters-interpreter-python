@@ -1,11 +1,29 @@
-from typing import cast
+from typing import Callable, TypeGuard
+from dataclasses import dataclass
+
 from app.expr import Binary, Expr, Grouping, Literal, Unary, Visitor
-from app.scanner import TokenType
+from app.scanner import Token, TokenType
 
 
+class RuntimeException(RuntimeError):
+    token: Token
+
+    def __init__(self, token: Token, message: str):
+        super().__init__(message)
+        self.token = token
+
+
+@dataclass
 class Interpreter(Visitor[object]):
-    def interpret(self, expr: Expr) -> object:
-        return expr.accept(self)
+    error_reporter: Callable[..., None]
+
+    def interpret(self, expr: Expr) -> str | None:
+        try:
+            val = self._evaluate(expr)
+            return self._stringify(val)
+        except RuntimeException as e:
+            self.error_reporter(e)
+            return None
 
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
@@ -23,8 +41,9 @@ class Interpreter(Visitor[object]):
                 val = not self._is_truthy(right)
                 return self._to_lox_bool(val)
             case TokenType.MINUS:
-                # TODO: handle runtime errors
-                return -right  # type:ignore
+                if self._check_number_operand(right, expr.operator):
+                    return -right
+                # unreachable
         return None
 
     def visit_binary_expr(self, expr: Binary) -> object:
@@ -68,3 +87,15 @@ class Interpreter(Visitor[object]):
 
     def _to_lox_bool(self, val: bool) -> str:
         return str(val).lower()
+
+    def _stringify(self, obj: object) -> str:
+        if obj is None:
+            return "nil"
+        return str(obj)
+
+    def _check_number_operand(
+        self, operand: object, operator: Token
+    ) -> TypeGuard[int | float]:
+        if isinstance(operand, (int, float)):
+            return True
+        raise RuntimeException(operator, "Operand must be a number.")
