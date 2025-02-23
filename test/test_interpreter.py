@@ -81,3 +81,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == 75
+
+    def test_can_interpret_concatenated_strings(self):
+        expr = self.generate_expression('"hello" + ", world!"')
+
+        res = Interpreter().interpret(expr)
+
+        assert res == "hello, world!"
