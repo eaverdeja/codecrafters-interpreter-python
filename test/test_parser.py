@@ -3,9 +3,10 @@ from unittest.mock import MagicMock
 from app.expr import Binary, Grouping, Literal, Unary
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
+from app.stmt import Print
 
 
-class TestParser:
+class TestParse:
     def test_parses_boolen_expressions(self):
         tokens = Scanner(
             source="true != false", error_reporter=MagicMock()
@@ -151,3 +152,41 @@ class TestParser:
             Token(token_type=TokenType.RIGHT_PAREN, lexeme=")", literal=None, line=1),
             "Expect expression.",
         )
+
+
+class TestParseAll:
+    def test_parses_all_into_statements(self):
+        source = """
+        'print "foo" + "bar";'
+        'print "bar" + "hello" + "quz";'
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Print(
+                expression=Binary(
+                    left=Literal(value="foo"),
+                    operator=Token(
+                        token_type=TokenType.PLUS, lexeme="+", literal=None, line=2
+                    ),
+                    right=Literal(value="bar"),
+                )
+            ),
+            Print(
+                expression=Binary(
+                    left=Binary(
+                        left=Literal(value="bar"),
+                        operator=Token(
+                            token_type=TokenType.PLUS, lexeme="+", literal=None, line=3
+                        ),
+                        right=Literal(value="hello"),
+                    ),
+                    operator=Token(
+                        token_type=TokenType.PLUS, lexeme="+", literal=None, line=3
+                    ),
+                    right=Literal(value="quz"),
+                )
+            ),
+        ]

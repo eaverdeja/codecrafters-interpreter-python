@@ -1,12 +1,15 @@
 from unittest import mock
 from unittest.mock import MagicMock
+
+from pytest import CaptureFixture
 from app.expr import Expr
 from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
+from app.stmt import Stmt
 
 
-class TestInterpreter:
+class TestInterpret:
     def generate_expression(self, source: str, should_fail: bool = False) -> Expr:
         tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
         expr = Parser(tokens, error_reporter=MagicMock()).parse()
@@ -117,3 +120,18 @@ class TestInterpreter:
         assert type(error) == RuntimeException
         assert str(error) == "Operand must be a number."
         error.token == Token(TokenType.STRING, lexeme="hello", literal=None, line=1)
+
+
+class TestInterpretAll:
+    def generate_statements(self, source: str, should_fail: bool = False) -> list[Stmt]:
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+        return stmts
+
+    def test_can_execute_a_print_statement(self, capsys: CaptureFixture):
+        stmts = self.generate_statements('print "hello" + ", world!";')
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "hello, world!\n"
