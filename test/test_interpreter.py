@@ -149,3 +149,16 @@ class TestInterpretAll:
 
         captured = capsys.readouterr()
         assert captured.out == "true\nthe expression below is invalid\n"
+
+    def test_can_execute_variable_declarations(self, capsys):
+        source = """
+        var a = 1;
+        var b = 2;
+        print a + b;
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "3\n"

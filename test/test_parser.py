@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from app.expr import Binary, Grouping, Literal, Unary
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Print
+from app.stmt import Print, Var
 
 
 class TestParse:
@@ -189,4 +189,19 @@ class TestParseAll:
                     right=Literal(value="quz"),
                 )
             ),
+        ]
+
+    def test_parses_variable_declarations(self):
+        source = 'var foo = "bar";'
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Var(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=1
+                ),
+                initializer=Literal(value="bar"),
+            )
         ]
