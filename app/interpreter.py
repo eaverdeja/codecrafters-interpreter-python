@@ -21,7 +21,7 @@ class Interpreter(Visitor[object]):
         match expr.operator.token_type:
             case TokenType.BANG:
                 val = not self._is_truthy(right)
-                return str(val).lower()
+                return self._to_lox_bool(val)
             case TokenType.MINUS:
                 # TODO: handle runtime errors
                 return -right  # type:ignore
@@ -43,7 +43,15 @@ class Interpreter(Visitor[object]):
                 val = left / right  # type:ignore
                 if val.is_integer():
                     return int(val)
-                return left / right  # type:ignore
+                return val  # type:ignore
+            case TokenType.GREATER:
+                return self._to_lox_bool(left > right)  # type:ignore
+            case TokenType.GREATER_EQUAL:
+                return self._to_lox_bool(left >= right)  # type:ignore
+            case TokenType.LESS:
+                return self._to_lox_bool(left < right)  # type:ignore
+            case TokenType.LESS_EQUAL:
+                return self._to_lox_bool(left <= right)  # type:ignore
         return None
 
     def _evaluate(self, expr: Expr) -> object:
@@ -53,3 +61,6 @@ class Interpreter(Visitor[object]):
         if obj is None or obj == "nil" or obj == "false":
             return False
         return True
+
+    def _to_lox_bool(self, val: bool) -> str:
+        return str(val).lower()

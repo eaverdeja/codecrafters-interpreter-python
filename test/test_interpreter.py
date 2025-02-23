@@ -88,3 +88,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == "hello, world!"
+
+    def test_can_interpret_relational_operators(self):
+        expr = self.generate_expression("42 > 17")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == "true"
