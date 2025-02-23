@@ -2,7 +2,7 @@ from typing import Callable, TypeGuard
 from dataclasses import dataclass
 
 from app import expr, stmt
-from app.stmt import Print, Stmt
+from app.stmt import Expression, Print, Stmt
 from app.expr import Binary, Expr, Grouping, Literal, Unary
 from app.scanner import Token, TokenType
 
@@ -104,7 +104,8 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         val = self._evaluate(stmt.expression)
         print(self._stringify(val))
 
-    def visit_expression_stmt(self, stmt): ...
+    def visit_expression_stmt(self, stmt: Expression) -> None:
+        self._evaluate(stmt.expression)
 
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)

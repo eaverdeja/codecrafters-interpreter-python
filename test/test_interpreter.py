@@ -123,7 +123,7 @@ class TestInterpret:
 
 
 class TestInterpretAll:
-    def generate_statements(self, source: str, should_fail: bool = False) -> list[Stmt]:
+    def generate_statements(self, source: str) -> list[Stmt]:
         tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
         stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
         return stmts
@@ -135,3 +135,17 @@ class TestInterpretAll:
 
         captured = capsys.readouterr()
         assert captured.out == "hello, world!\n"
+
+    def test_can_execute_expression_statements(self, capsys):
+        source = """
+        print 42 > 17;
+        print "the expression below is invalid";
+        14 + "quz";
+        print "this should not be printed";
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "true\nthe expression below is invalid\n"
