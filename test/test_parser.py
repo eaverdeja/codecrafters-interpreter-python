@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from app.expr import Binary, Grouping, Literal
+from app.expr import Binary, Grouping, Literal, Unary
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 
@@ -48,3 +48,16 @@ class TestParser:
         expr = Parser(tokens).parse()
 
         assert expr == Grouping(expression=Literal(value="foo"))
+
+    def test_parses_unary_operators(self):
+        tokens = Scanner(source="!!true", error_reporter=MagicMock()).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Unary(
+            operator=Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
+            right=Unary(
+                Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
+                right=Literal(value="true"),
+            ),
+        )
