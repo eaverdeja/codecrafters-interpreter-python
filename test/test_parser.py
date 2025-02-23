@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import MagicMock
 from app.expr import Binary, Grouping, Literal, Unary
 from app.parser import Parser
@@ -10,7 +11,7 @@ class TestParser:
             source="true != false", error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Literal(value="true"),
@@ -23,7 +24,7 @@ class TestParser:
     def test_parses_number_literals(self):
         tokens = Scanner(source="42 - 15", error_reporter=MagicMock()).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Literal(value=42.0),
@@ -38,21 +39,21 @@ class TestParser:
             source='"hello world"', error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Literal(value="hello world")
 
     def test_parses_groups(self):
         tokens = Scanner(source='("foo")', error_reporter=MagicMock()).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Grouping(expression=Literal(value="foo"))
 
     def test_parses_unary_operators(self):
         tokens = Scanner(source="!!true", error_reporter=MagicMock()).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Unary(
             operator=Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
@@ -67,7 +68,7 @@ class TestParser:
             source="16 * 38 / 58", error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Binary(
@@ -88,7 +89,7 @@ class TestParser:
             source="52 + 80 - 94", error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Binary(
@@ -109,7 +110,7 @@ class TestParser:
             source="83 < 99 < 115", error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Binary(
@@ -128,7 +129,7 @@ class TestParser:
             source='"baz" == "baz"', error_reporter=MagicMock()
         ).scan_tokens()
 
-        expr = Parser(tokens).parse()
+        expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
             left=Literal(value="baz"),
@@ -136,4 +137,17 @@ class TestParser:
                 token_type=TokenType.EQUAL_EQUAL, lexeme="==", literal=None, line=1
             ),
             right=Literal(value="baz"),
+        )
+
+    def test_syntatic_errors(self):
+        error_reporter = MagicMock()
+        tokens = Scanner(source="(42 +)", error_reporter=MagicMock()).scan_tokens()
+
+        expr = Parser(tokens, error_reporter=error_reporter).parse()
+
+        assert expr is None
+
+        error_reporter.assert_called_once_with(
+            Token(token_type=TokenType.RIGHT_PAREN, lexeme=")", literal=None, line=1),
+            "Expect expression.",
         )

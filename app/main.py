@@ -3,7 +3,7 @@ import sys
 from app.ast_printer import AstPrinter
 from app.expr import Expr
 from app.parser import Parser
-from app.scanner import Scanner, Token
+from app.scanner import Scanner, Token, TokenType
 
 
 class Pylox:
@@ -29,8 +29,9 @@ class Pylox:
                     print(token)
             case "parse":
                 expr = self.parse_file(filename)
-                res = AstPrinter().print(expr)
-                print(res)
+                if expr:
+                    res = AstPrinter().print(expr)
+                    print(res)
             case _:
                 print(f"Unknown command: {command}", file=sys.stderr)
                 exit(1)
@@ -64,6 +65,13 @@ class Pylox:
     def run(self, source: str) -> None:
         tokens = self._scan(source)
         expr = self._parse(tokens)
+
+        if self._had_error:
+            return
+        assert (
+            expr is not None
+        ), "Expected valid expression since no errors were reported!"
+
         res = AstPrinter().print(expr)
         print(res)
 
@@ -72,19 +80,28 @@ class Pylox:
             source = file.read()
         return self._scan(source)
 
-    def parse_file(self, filename: str) -> Expr:
+    def parse_file(self, filename: str) -> Expr | None:
         tokens = self.scan_file(filename)
         return self._parse(tokens)
 
     def _scan(self, source: str) -> list[Token]:
-        scanner = Scanner(source, error_reporter=self.error)
+        scanner = Scanner(source, error_reporter=self.scan_error)
         return scanner.scan_tokens()
 
-    def _parse(self, tokens: list[Token]) -> Expr:
-        return Parser(tokens).parse()
+    def _parse(self, tokens: list[Token]) -> Expr | None:
+        return Parser(tokens, error_reporter=self.parse_error).parse()
 
-    def error(self, line: int, message: str) -> None:
-        sys.stderr.write(f"[line {line}] Error: {message}\n")
+    def scan_error(self, line: int, message: str) -> None:
+        self._report(line, "", message)
+
+    def parse_error(self, token: Token, message: str) -> None:
+        if token.token_type == TokenType.EOF:
+            self._report(token.line, " at the end", message)
+        else:
+            self._report(token.line, f" at '{token.lexeme}'", message)
+
+    def _report(self, line: int, where: str, message: str):
+        sys.stderr.write(f"[line {line}] Error{where}: {message}\n")
         self._had_error = True
 
 

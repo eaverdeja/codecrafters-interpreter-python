@@ -1,7 +1,11 @@
 from dataclasses import dataclass
+from typing import Callable
 
 from app.expr import Binary, Expr, Grouping, Literal, Unary
 from app.scanner import Token, TokenType
+
+
+class ParseError(RuntimeError): ...
 
 
 @dataclass
@@ -19,10 +23,15 @@ class Parser:
     """
 
     tokens: list[Token]
+    error_reporter: Callable[..., None]
+
     _current: int = 0
 
-    def parse(self) -> Expr:
-        return self._expression()
+    def parse(self) -> Expr | None:
+        try:
+            return self._expression()
+        except ParseError:
+            return None
 
     def _expression(self) -> Expr:
         return self._equality()
@@ -92,12 +101,10 @@ class Parser:
 
         if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()
-            # Trust that this is a closing ) for now
-            # We'll come back to deal with syntax errors
-            self._advance()
+            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
 
-        raise ValueError("Unrecognized primary value")
+        raise self._error(self._peek(), "Expect expression.")
 
     def _match(self, *types: TokenType) -> bool:
         for token_type in types:
@@ -115,6 +122,15 @@ class Parser:
         if not self._is_at_end():
             self._current += 1
         return self._previous()
+
+    def _consume(self, token_type: TokenType, message: str) -> Token:
+        if self._check(token_type):
+            return self._advance()
+        raise self._error(self._peek(), message)
+
+    def _error(self, token: Token, message: str) -> ParseError:
+        self.error_reporter(token, message)
+        return ParseError(message)
 
     def _is_at_end(self) -> bool:
         return self._peek().token_type == TokenType.EOF
