@@ -13,11 +13,11 @@ class TestParser:
         expr = Parser(tokens).parse()
 
         assert expr == Binary(
-            left=Literal(value=True),
+            left=Literal(value="true"),
             operator=Token(
                 token_type=TokenType.BANG_EQUAL, lexeme="!=", literal=None, line=1
             ),
-            right=Literal(value=False),
+            right=Literal(value="false"),
         )
 
     def test_parses_number_literals(self):
@@ -32,3 +32,12 @@ class TestParser:
             ),
             right=Literal(value=15.0),
         )
+
+    def test_parses_string_literals(self):
+        tokens = Scanner(
+            source='"hello world"', error_reporter=MagicMock()
+        ).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Literal(value="hello world")
