@@ -16,10 +16,11 @@ class GenerateAst:
             output_dir,
             "Expr",
             [
-                "Binary | left: Expr, operator: Token, right: Expr",
-                "Grouping | expression: Expr",
-                "Literal | value: object",
-                "Unary | operator: Token, right: Expr",
+                "Binary > left: Expr, operator: Token, right: Expr",
+                "Grouping > expression: Expr",
+                "Literal > value: object",
+                "Unary > operator: Token, right: Expr",
+                "Variable > name: Token",
             ],
         )
 
@@ -27,8 +28,9 @@ class GenerateAst:
             output_dir,
             "Stmt",
             [
-                "Expression | expression: Expr",
-                "Print | expression: Expr",
+                "Expression > expression: Expr",
+                "Print > expression: Expr",
+                "Var > name: Token, initializer: Expr",
             ],
         )
 
@@ -58,8 +60,8 @@ class GenerateAst:
             )
 
             for concrete_type in types:
-                class_name = concrete_type.split("|")[0].strip()
-                fields = concrete_type.split("|")[1].strip()
+                class_name = concrete_type.split(">")[0].strip()
+                fields = concrete_type.split(">")[1].strip()
                 self._define_type(f, base_name, class_name, fields)
 
     def _define_visitor(
@@ -73,7 +75,7 @@ class GenerateAst:
             ]
         )
         for concrete_type in types:
-            class_name = concrete_type.split("|")[0].strip()
+            class_name = concrete_type.split(">")[0].strip()
             f.writelines(
                 [
                     "\t@abstractmethod\n",
