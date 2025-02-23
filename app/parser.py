@@ -3,6 +3,7 @@ from typing import Callable
 
 from app.expr import Binary, Expr, Grouping, Literal, Unary
 from app.scanner import Token, TokenType
+from app.stmt import Expression, Print, Stmt
 
 
 class ParseError(RuntimeError): ...
@@ -12,6 +13,11 @@ class ParseError(RuntimeError): ...
 class Parser:
     """
     Grammar
+
+    program        → statement* EOF ;
+    statement      → exprStmt | printStmt ;
+    exprStmt       → expression ";" ;
+    printStmt      → "print" expression ";" ;
 
     expression     → equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -32,6 +38,16 @@ class Parser:
             return self._expression()
         except ParseError:
             return None
+
+    def parse_all(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+        while not self._is_at_end():
+            try:
+                statements.append(self._statement())
+            except ParseError:
+                # Advance and forget for now - we'll revisit this
+                self._advance()
+        return statements
 
     def _expression(self) -> Expr:
         return self._equality()
@@ -105,6 +121,21 @@ class Parser:
             return Grouping(expr)
 
         raise self._error(self._peek(), "Expect expression.")
+
+    def _statement(self) -> Stmt:
+        if self._match(TokenType.PRINT):
+            return self._print_statement()
+        return self._expression_statement()
+
+    def _print_statement(self) -> Stmt:
+        val = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Print(val)
+
+    def _expression_statement(self) -> Stmt:
+        expr = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        return Expression(expr)
 
     def _match(self, *types: TokenType) -> bool:
         for token_type in types:
