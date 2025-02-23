@@ -12,9 +12,11 @@ class AstPrinter(Visitor[str]):
     def visit_grouping_expr(self, expr: Grouping) -> str:
         return self._parenthisize("group", expr.expression)
 
-    def visit_literal_expr(self, expr: Literal):
+    def visit_literal_expr(self, expr: Literal) -> str:
         if expr.value is None:
             return "nil"
+        if isinstance(expr.value, int):
+            return str(float(expr.value))
         return str(expr.value)
 
     def visit_unary_expr(self, expr: Unary) -> str:
