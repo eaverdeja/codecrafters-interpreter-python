@@ -5,6 +5,7 @@ from app.expr import Expr
 from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
+from app.stmt import Stmt
 
 
 class Pylox:
@@ -40,6 +41,8 @@ class Pylox:
                     res = Interpreter(error_reporter=self.runtime_error).interpret(expr)
                     if res:
                         print(res)
+            case "run":
+                self.run_file(filename)
             case _:
                 print(f"Unknown command: {command}", file=sys.stderr)
                 exit(1)
@@ -69,17 +72,12 @@ class Pylox:
 
     def run(self, source: str) -> None:
         tokens = self._scan(source)
-        expr = self._parse(tokens)
+        stmts = self._parse_all(tokens)
 
         if self._had_error:
             return
-        assert (
-            expr is not None
-        ), "Expected valid expression since no errors were reported!"
 
-        res = Interpreter(error_reporter=self.runtime_error).interpret(expr)
-        if res is not None:
-            print(res)
+        Interpreter(error_reporter=self.runtime_error).interpret_all(stmts)
 
     def scan_file(self, filename: str) -> list[Token]:
         with open(filename) as file:
@@ -96,6 +94,9 @@ class Pylox:
 
     def _parse(self, tokens: list[Token]) -> Expr | None:
         return Parser(tokens, error_reporter=self.parse_error).parse()
+
+    def _parse_all(self, tokens: list[Token]) -> list[Stmt]:
+        return Parser(tokens, error_reporter=self.parse_error).parse_all()
 
     def scan_error(self, line: int, message: str) -> None:
         self._report(line, "", message)

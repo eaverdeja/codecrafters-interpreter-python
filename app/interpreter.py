@@ -1,7 +1,9 @@
 from typing import Callable, TypeGuard
 from dataclasses import dataclass
 
-from app.expr import Binary, Expr, Grouping, Literal, Unary, Visitor
+from app import expr, stmt
+from app.stmt import Print, Stmt
+from app.expr import Binary, Expr, Grouping, Literal, Unary
 from app.scanner import Token, TokenType
 
 
@@ -14,7 +16,7 @@ class RuntimeException(RuntimeError):
 
 
 @dataclass
-class Interpreter(Visitor[object]):
+class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     error_reporter: Callable[..., None]
 
     def interpret(self, expr: Expr) -> str | None:
@@ -24,6 +26,13 @@ class Interpreter(Visitor[object]):
         except RuntimeException as e:
             self.error_reporter(e)
             return None
+
+    def interpret_all(self, statements: list[Stmt]) -> None:
+        try:
+            for statement in statements:
+                self._execute(statement)
+        except RuntimeException as e:
+            self.error_reporter(e)
 
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
@@ -91,8 +100,17 @@ class Interpreter(Visitor[object]):
 
         return None
 
+    def visit_print_stmt(self, stmt: Print) -> None:
+        val = self._evaluate(stmt.expression)
+        print(self._stringify(val))
+
+    def visit_expression_stmt(self, stmt): ...
+
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)
+
+    def _execute(self, stmt: Stmt) -> None:
+        stmt.accept(self)
 
     def _is_truthy(self, obj: object) -> bool:
         if obj is None or obj == False or obj == "nil":
