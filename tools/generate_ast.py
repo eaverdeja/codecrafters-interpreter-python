@@ -27,12 +27,21 @@ class GenerateAst:
             f.writelines(
                 [
                     "from dataclasses import dataclass\n",
-                    "from abc import ABC\n",
+                    "from abc import ABC, abstractmethod\n",
+                    "from typing import TypeVar, Generic\n",
                     "\n",
                     "from app.scanner import Token\n",
                     "\n",
-                    "\n",
-                    f"class {base_name}(ABC): ...\n",
+                ]
+            )
+
+            self._define_visitor(f, types)
+
+            f.writelines(
+                [
+                    f"class {base_name}(ABC):\n",
+                    "\t@abstractmethod\n",
+                    "\tdef accept(self, visitor: Visitor[R]): ...\n",
                     "\n\n",
                 ]
             )
@@ -42,6 +51,24 @@ class GenerateAst:
                 fields = concrete_type.split("|")[1].strip()
                 self._define_type(f, base_name, class_name, fields)
 
+    def _define_visitor(self, f: TextIOWrapper, types: list[str]) -> None:
+        f.writelines(
+            [
+                "R = TypeVar('R')",
+                "\n\n",
+                "class Visitor(Generic[R]):\n",
+            ]
+        )
+        for concrete_type in types:
+            class_name = concrete_type.split("|")[0].strip()
+            f.writelines(
+                [
+                    "\t@abstractmethod\n",
+                    f"\tdef visit_{class_name.lower()}_expr(self, expr: '{class_name}') -> R: ...",
+                    "\n\n",
+                ]
+            )
+
     def _define_type(
         self, f: TextIOWrapper, base_name: str, class_name: str, fields: str
     ) -> None:
@@ -50,6 +77,9 @@ class GenerateAst:
                 "@dataclass\n",
                 f"class {class_name}({base_name}):\n",
                 *(f"\t{field.strip()}\n" for field in fields.split(",")),
+                "\n",
+                "\tdef accept(self, visitor: Visitor[R]) -> R:\n",
+                f"\t\treturn visitor.visit_{class_name.lower()}_expr(self)\n",
                 "\n\n",
             ]
         )
