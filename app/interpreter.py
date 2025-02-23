@@ -33,6 +33,10 @@ class Interpreter(Visitor[object]):
 
         match expr.operator.token_type:
             # TODO: handle runtime errors
+            case TokenType.PLUS:
+                return left + right  # type:ignore
+            case TokenType.MINUS:
+                return left - right  # type:ignore
             case TokenType.STAR:
                 return left * right  # type:ignore
             case TokenType.SLASH:

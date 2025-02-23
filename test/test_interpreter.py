@@ -74,3 +74,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == 4.2
+
+    def test_can_interpret_arithmetic_expressions_2(self):
+        expr = self.generate_expression("20 + 74 - (-(14 - 33))")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == 75
