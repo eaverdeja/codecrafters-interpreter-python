@@ -103,3 +103,22 @@ class TestParser:
             ),
             right=Literal(value=94.0),
         )
+
+    def test_parses_comparsion_operators(self):
+        tokens = Scanner(
+            source="83 < 99 < 115", error_reporter=MagicMock()
+        ).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Binary(
+            left=Binary(
+                left=Literal(value=83.0),
+                operator=Token(
+                    token_type=TokenType.LESS, lexeme="<", literal=None, line=1
+                ),
+                right=Literal(value=99.0),
+            ),
+            operator=Token(token_type=TokenType.LESS, lexeme="<", literal=None, line=1),
+            right=Literal(value=115.0),
+        )

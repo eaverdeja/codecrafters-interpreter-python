@@ -52,6 +52,9 @@ class TokenType(StrEnum):
 
     EOF = "EOF"
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
+
 
 @dataclass
 class Token:
