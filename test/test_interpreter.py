@@ -67,3 +67,10 @@ class TestInterpreter:
         res = Interpreter().interpret(expr)
 
         assert res == "false"
+
+    def test_can_interpret_arithmetic_expressions(self):
+        expr = self.generate_expression("3 * 3 / 2.142857142857143")
+
+        res = Interpreter().interpret(expr)
+
+        assert res == 4.2

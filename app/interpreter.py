@@ -1,5 +1,5 @@
 from typing import cast
-from app.expr import Expr, Grouping, Literal, Unary, Visitor
+from app.expr import Binary, Expr, Grouping, Literal, Unary, Visitor
 from app.scanner import TokenType
 
 
@@ -27,7 +27,20 @@ class Interpreter(Visitor[object]):
                 return -right  # type:ignore
         return None
 
-    def visit_binary_expr(self, expr): ...
+    def visit_binary_expr(self, expr: Binary) -> object:
+        left = self._evaluate(expr.left)
+        right = self._evaluate(expr.right)
+
+        match expr.operator.token_type:
+            # TODO: handle runtime errors
+            case TokenType.STAR:
+                return left * right  # type:ignore
+            case TokenType.SLASH:
+                val = left / right  # type:ignore
+                if val.is_integer():
+                    return int(val)
+                return left / right  # type:ignore
+        return None
 
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)
