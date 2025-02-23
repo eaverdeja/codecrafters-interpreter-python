@@ -35,6 +35,9 @@ class Pylox:
                 print(f"Unknown command: {command}", file=sys.stderr)
                 exit(1)
 
+        if self._had_error:
+            exit(65)
+
     def run_file(self, filename: str) -> None:
         with open(filename) as file:
             file_contents = file.read()
