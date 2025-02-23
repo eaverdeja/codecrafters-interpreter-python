@@ -82,3 +82,24 @@ class TestParser:
             ),
             right=Literal(value=58.0),
         )
+
+    def test_parses_arithmetic_expressions_2(self):
+        tokens = Scanner(
+            source="52 + 80 - 94", error_reporter=MagicMock()
+        ).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Binary(
+            left=Binary(
+                left=Literal(value=52.0),
+                operator=Token(
+                    token_type=TokenType.PLUS, lexeme="+", literal=None, line=1
+                ),
+                right=Literal(value=80.0),
+            ),
+            operator=Token(
+                token_type=TokenType.MINUS, lexeme="-", literal=None, line=1
+            ),
+            right=Literal(value=94.0),
+        )
