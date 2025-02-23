@@ -87,6 +87,8 @@ class Parser:
             return Literal("true")
         if self._match(TokenType.NIL):
             return Literal("nil")
+        if self._match(TokenType.NUMBER):
+            return Literal(self._previous().literal)
 
         raise ValueError("Unrecognized primary value")
 

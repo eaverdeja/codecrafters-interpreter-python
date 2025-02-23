@@ -19,3 +19,16 @@ class TestParser:
             ),
             right=Literal(value=False),
         )
+
+    def test_parses_number_literals(self):
+        tokens = Scanner(source="42 - 15", error_reporter=MagicMock()).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Binary(
+            left=Literal(value=42.0),
+            operator=Token(
+                token_type=TokenType.MINUS, lexeme="-", literal=None, line=1
+            ),
+            right=Literal(value=15.0),
+        )
