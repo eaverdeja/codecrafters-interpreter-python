@@ -51,30 +51,38 @@ class Interpreter(Visitor[object]):
         right = self._evaluate(expr.right)
 
         match expr.operator.token_type:
-            # TODO: handle runtime errors
             case TokenType.PLUS:
-                return left + right  # type:ignore
-            case TokenType.MINUS:
-                return left - right  # type:ignore
-            case TokenType.STAR:
-                return left * right  # type:ignore
-            case TokenType.SLASH:
-                val = left / right  # type:ignore
-                if val.is_integer():
-                    return int(val)
-                return val  # type:ignore
-            case TokenType.GREATER:
-                return self._to_lox_bool(left > right)  # type:ignore
-            case TokenType.GREATER_EQUAL:
-                return self._to_lox_bool(left >= right)  # type:ignore
-            case TokenType.LESS:
-                return self._to_lox_bool(left < right)  # type:ignore
-            case TokenType.LESS_EQUAL:
-                return self._to_lox_bool(left <= right)  # type:ignore
+                if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                    return left + right
+                if isinstance(left, str) and isinstance(right, str):
+                    return left + right
             case TokenType.BANG_EQUAL:
-                return self._to_lox_bool(left != right)  # type:ignore
+                return self._to_lox_bool(left != right)
             case TokenType.EQUAL_EQUAL:
-                return self._to_lox_bool(left == right)  # type:ignore
+                return self._to_lox_bool(left == right)
+
+        if self._check_number_operand(
+            left, expr.operator
+        ) and self._check_number_operand(right, expr.operator):
+            match expr.operator.token_type:
+                case TokenType.MINUS:
+                    return left - right
+                case TokenType.STAR:
+                    return left * right
+                case TokenType.SLASH:
+                    val = left / right
+                    if val.is_integer():
+                        return int(val)
+                    return val
+                case TokenType.GREATER:
+                    return self._to_lox_bool(left > right)
+                case TokenType.GREATER_EQUAL:
+                    return self._to_lox_bool(left >= right)
+                case TokenType.LESS:
+                    return self._to_lox_bool(left < right)
+                case TokenType.LESS_EQUAL:
+                    return self._to_lox_bool(left <= right)
+
         return None
 
     def _evaluate(self, expr: Expr) -> object:
