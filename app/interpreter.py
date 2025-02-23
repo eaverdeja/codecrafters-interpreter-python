@@ -28,6 +28,10 @@ class Interpreter(Visitor[object]):
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
             return int(expr.value)
+        if expr.value == "true":
+            return True
+        if expr.value == "false":
+            return False
         return expr.value
 
     def visit_grouping_expr(self, expr: Grouping) -> object:
@@ -39,11 +43,10 @@ class Interpreter(Visitor[object]):
         match expr.operator.token_type:
             case TokenType.BANG:
                 val = not self._is_truthy(right)
-                return self._to_lox_bool(val)
+                return val
             case TokenType.MINUS:
                 if self._check_number_operand(right, expr.operator):
                     return -right
-                # unreachable
         return None
 
     def visit_binary_expr(self, expr: Binary) -> object:
@@ -56,10 +59,13 @@ class Interpreter(Visitor[object]):
                     return left + right
                 if isinstance(left, str) and isinstance(right, str):
                     return left + right
+                raise RuntimeException(
+                    expr.operator, "Operands must be two numbers or two strings."
+                )
             case TokenType.BANG_EQUAL:
-                return self._to_lox_bool(left != right)
+                return left != right
             case TokenType.EQUAL_EQUAL:
-                return self._to_lox_bool(left == right)
+                return left == right
 
         if self._check_number_operand(
             left, expr.operator
@@ -75,13 +81,13 @@ class Interpreter(Visitor[object]):
                         return int(val)
                     return val
                 case TokenType.GREATER:
-                    return self._to_lox_bool(left > right)
+                    return left > right
                 case TokenType.GREATER_EQUAL:
-                    return self._to_lox_bool(left >= right)
+                    return left >= right
                 case TokenType.LESS:
-                    return self._to_lox_bool(left < right)
+                    return left < right
                 case TokenType.LESS_EQUAL:
-                    return self._to_lox_bool(left <= right)
+                    return left <= right
 
         return None
 
@@ -89,21 +95,21 @@ class Interpreter(Visitor[object]):
         return expr.accept(self)
 
     def _is_truthy(self, obj: object) -> bool:
-        if obj is None or obj == "nil" or obj == "false":
+        if obj is None or obj == "nil":
             return False
         return True
-
-    def _to_lox_bool(self, val: bool) -> str:
-        return str(val).lower()
 
     def _stringify(self, obj: object) -> str:
         if obj is None:
             return "nil"
+        if obj is True or obj is False:
+            return str(obj).lower()
         return str(obj)
 
     def _check_number_operand(
         self, operand: object, operator: Token
     ) -> TypeGuard[int | float]:
-        if isinstance(operand, (int, float)):
+        # isinstance(True, int) evaluates to True in python :/
+        if not isinstance(operand, bool) and isinstance(operand, (int, float)):
             return True
         raise RuntimeException(operator, "Operand must be a number.")
