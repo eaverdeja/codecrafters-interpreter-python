@@ -1,23 +1,19 @@
 from typing import Callable, TypeGuard
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app import expr, stmt
-from app.stmt import Expression, Print, Stmt
-from app.expr import Binary, Expr, Grouping, Literal, Unary
+from app.environment import Environment
+from app.exceptions import RuntimeException
+from app.stmt import Expression, Print, Stmt, Var
+from app.expr import Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
-
-
-class RuntimeException(RuntimeError):
-    token: Token
-
-    def __init__(self, token: Token, message: str):
-        super().__init__(message)
-        self.token = token
 
 
 @dataclass
 class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     error_reporter: Callable[..., None]
+
+    _environment: Environment = field(default_factory=Environment)
 
     def interpret(self, expr: Expr) -> str | None:
         try:
@@ -106,6 +102,15 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self._evaluate(stmt.expression)
+
+    def visit_var_stmt(self, stmt: Var) -> None:
+        val: object | None = None
+        if stmt.initializer:
+            val = self._evaluate(stmt.initializer)
+        self._environment.define(stmt.name.lexeme, val)
+
+    def visit_variable_expr(self, expr: Variable) -> object:
+        return self._environment.get(expr.name)
 
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)
