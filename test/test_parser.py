@@ -122,3 +122,18 @@ class TestParser:
             operator=Token(token_type=TokenType.LESS, lexeme="<", literal=None, line=1),
             right=Literal(value=115.0),
         )
+
+    def test_parses_equality_operators(self):
+        tokens = Scanner(
+            source='"baz" == "baz"', error_reporter=MagicMock()
+        ).scan_tokens()
+
+        expr = Parser(tokens).parse()
+
+        assert expr == Binary(
+            left=Literal(value="baz"),
+            operator=Token(
+                token_type=TokenType.EQUAL_EQUAL, lexeme="==", literal=None, line=1
+            ),
+            right=Literal(value="baz"),
+        )
