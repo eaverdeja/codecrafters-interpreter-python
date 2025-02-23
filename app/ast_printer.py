@@ -1,4 +1,5 @@
-from app.expr import Binary, Expr, Literal, Visitor
+from app.expr import Binary, Expr, Literal, Unary, Visitor
+from app.parser import Parser
 from app.scanner import Token, TokenType
 
 
@@ -9,10 +10,13 @@ class AstPrinter(Visitor[str]):
     def visit_binary_expr(self, expr: Binary) -> str:
         return self._parenthisize(expr.operator.lexeme, expr.left, expr.right)
 
-    def visit_literal_expr(self, expr):
+    def visit_literal_expr(self, expr: Literal):
         if expr.value is None:
             return "nil"
         return str(expr.value)
+
+    def visit_unary_expr(self, expr: Unary) -> str:
+        return self._parenthisize(expr.operator.lexeme, expr.right)
 
     def _parenthisize(self, name: str, *exprs: Expr) -> str:
         res = f"({name}"

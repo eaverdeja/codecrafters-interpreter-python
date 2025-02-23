@@ -18,6 +18,7 @@ class GenerateAst:
             [
                 "Binary | left: Expr, operator: Token, right: Expr",
                 "Literal | value: object",
+                "Unary | operator: Token, right: Expr",
             ],
         )
 

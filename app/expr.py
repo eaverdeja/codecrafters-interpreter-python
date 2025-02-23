@@ -14,6 +14,9 @@ class Visitor(Generic[R]):
     @abstractmethod
     def visit_literal_expr(self, expr: "Literal") -> R: ...
 
+    @abstractmethod
+    def visit_unary_expr(self, expr: "Unary") -> R: ...
+
 
 class Expr(ABC):
     @abstractmethod
@@ -36,3 +39,12 @@ class Literal(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_literal_expr(self)
+
+
+@dataclass
+class Unary(Expr):
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_unary_expr(self)
