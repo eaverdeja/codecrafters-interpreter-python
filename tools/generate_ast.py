@@ -23,6 +23,15 @@ class GenerateAst:
             ],
         )
 
+        self._define_ast(
+            output_dir,
+            "Stmt",
+            [
+                "Expression | expression: Expr",
+                "Print | expression: Expr",
+            ],
+        )
+
     def _define_ast(self, output_dir: str, base_name: str, types: list[str]) -> None:
         path = f"{output_dir}/{base_name.lower()}.py"
         with open(path, "w") as f:
@@ -37,7 +46,7 @@ class GenerateAst:
                 ]
             )
 
-            self._define_visitor(f, types)
+            self._define_visitor(f, base_name, types)
 
             f.writelines(
                 [
@@ -53,7 +62,9 @@ class GenerateAst:
                 fields = concrete_type.split("|")[1].strip()
                 self._define_type(f, base_name, class_name, fields)
 
-    def _define_visitor(self, f: TextIOWrapper, types: list[str]) -> None:
+    def _define_visitor(
+        self, f: TextIOWrapper, base_name: str, types: list[str]
+    ) -> None:
         f.writelines(
             [
                 "R = TypeVar('R')",
@@ -66,7 +77,7 @@ class GenerateAst:
             f.writelines(
                 [
                     "\t@abstractmethod\n",
-                    f"\tdef visit_{class_name.lower()}_expr(self, expr: '{class_name}') -> R: ...",
+                    f"\tdef visit_{class_name.lower()}_{base_name.lower()}(self, {base_name.lower()}: '{class_name}') -> R: ...",
                     "\n\n",
                 ]
             )
@@ -81,7 +92,7 @@ class GenerateAst:
                 *(f"\t{field.strip()}\n" for field in fields.split(",")),
                 "\n",
                 "\tdef accept(self, visitor: Visitor[R]) -> R:\n",
-                f"\t\treturn visitor.visit_{class_name.lower()}_expr(self)\n",
+                f"\t\treturn visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n",
                 "\n\n",
             ]
         )
