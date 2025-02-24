@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from app.expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
 from app.stmt import Expression, Print, Stmt, Var
 
@@ -20,7 +20,9 @@ class Parser:
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
 
-    expression     → equality ;
+    expression     → assignment ;
+    assignment     → IDENTIFIER "=" assignment
+                    | equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -34,7 +36,7 @@ class Parser:
     """
 
     tokens: list[Token]
-    error_reporter: Callable[..., None]
+    error_reporter: Callable[[Token, str], None]
 
     _current: int = 0
 
@@ -53,7 +55,22 @@ class Parser:
         return statements
 
     def _expression(self) -> Expr:
-        return self._equality()
+        return self._assignment()
+
+    def _assignment(self) -> Expr:
+        expr = self._equality()
+
+        if self._match(TokenType.EQUAL):
+            equals = self._previous()
+            value = self._assignment()
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+
+            self.error_reporter(equals, "Invalid assignment target.")
+
+        return expr
 
     def _equality(self) -> Expr:
         expr = self._comparison()
