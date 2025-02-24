@@ -5,7 +5,7 @@ from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
 from app.stmt import Expression, Print, Stmt, Var
-from app.expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
 
 
@@ -111,6 +111,11 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def visit_variable_expr(self, expr: Variable) -> object:
         return self._environment.get(expr.name)
+
+    def visit_assign_expr(self, expr: Assign) -> object:
+        val = self._evaluate(expr.value)
+        self._environment.assign(expr.name, val)
+        return val
 
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)

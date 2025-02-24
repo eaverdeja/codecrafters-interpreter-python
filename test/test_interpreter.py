@@ -162,3 +162,16 @@ class TestInterpretAll:
 
         captured = capsys.readouterr()
         assert captured.out == "3\n"
+
+    def test_can_execute_variable_assignments(self, capsys):
+        source = """
+        var foo = 1;
+        foo = 2;
+        print foo;
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "2\n"
