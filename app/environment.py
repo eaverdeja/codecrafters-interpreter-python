@@ -14,13 +14,15 @@ class Environment:
         self.values[name] = value
 
     def assign(self, name: Token, value: object) -> None:
-        if name.lexeme not in self.values:
-            raise RuntimeException(name, f"Undefined variable '{name.lexeme}'")
+        if name.lexeme in self.values:
+            self.values[name.lexeme] = value
+            return
+        
         if self.enclosing:
             self.enclosing.assign(name, value)
             return
 
-        self.values[name.lexeme] = value
+        raise RuntimeException(name, f"Undefined variable '{name.lexeme}'")
 
     def get(self, name: Token) -> object:
         if name.lexeme in self.values:
