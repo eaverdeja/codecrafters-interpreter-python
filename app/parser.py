@@ -3,7 +3,7 @@ from typing import Callable
 
 from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
-from app.stmt import Expression, Print, Stmt, Var
+from app.stmt import Block, Expression, Print, Stmt, Var
 
 
 class ParseError(RuntimeError): ...
@@ -16,9 +16,10 @@ class Parser:
 
     program        → declaration* EOF ;
     declaration    → varDecl | statement ;
-    statement      → exprStmt | printStmt ;
+    statement      → exprStmt | printStmt | block ;
     exprStmt       → expression ";" ;
     printStmt      → "print" expression ";" ;
+    block          → "{" declaration* "}" ;
 
     expression     → assignment ;
     assignment     → IDENTIFIER "=" assignment
@@ -157,12 +158,24 @@ class Parser:
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        if self._match(TokenType.LEFT_BRACE):
+            return Block(self._block())
         return self._expression_statement()
 
     def _print_statement(self) -> Stmt:
         val = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(val)
+
+    def _block(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            stmt = self._declaration()
+            if stmt:
+                statements.append(stmt)
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after a block.")
+        return statements
 
     def _expression_statement(self) -> Stmt:
         expr = self._expression()
