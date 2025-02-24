@@ -16,6 +16,9 @@ class Visitor(Generic[R]):
     def visit_expression_stmt(self, stmt: "Expression") -> R: ...
 
     @abstractmethod
+    def visit_if_stmt(self, stmt: "If") -> R: ...
+
+    @abstractmethod
     def visit_print_stmt(self, stmt: "Print") -> R: ...
 
     @abstractmethod
@@ -41,6 +44,16 @@ class Expression(Stmt):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_expression_stmt(self)
+
+
+@dataclass
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_if_stmt(self)
 
 
 @dataclass
