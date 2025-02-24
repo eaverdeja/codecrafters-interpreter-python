@@ -178,3 +178,44 @@ class TestInterpretAll:
 
         captured = capsys.readouterr()
         assert captured.out == "2\n2\n3\n"
+
+    def test_can_execute_multiple_blocks(self, capsys):
+        source = """
+        var a = "global a";
+        var b = "global b";
+        var c = "global c";
+        {
+        var a = "outer a";
+        var b = "outer b";
+        {
+            var a = "inner a";
+            print a;
+            print b;
+            print c;
+        }
+        print a;
+        print b;
+        print c;
+        }
+        print a;
+        print b;
+        print c;
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert (
+            captured.out
+            == """inner a
+outer b
+global c
+outer a
+outer b
+global c
+global a
+global b
+global c
+"""
+        )

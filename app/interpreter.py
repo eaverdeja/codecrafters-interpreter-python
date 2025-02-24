@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
-from app.stmt import Expression, Print, Stmt, Var
+from app.stmt import Block, Expression, Print, Stmt, Var
 from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
 
@@ -100,6 +100,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         val = self._evaluate(stmt.expression)
         print(self._stringify(val))
 
+    def visit_block_stmt(self, stmt: Block) -> None:
+        self._execute_block(stmt.statements, Environment(enclosing=self._environment))
+
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self._evaluate(stmt.expression)
 
@@ -122,6 +125,15 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def _execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
+
+    def _execute_block(self, statements: list[Stmt], environment: Environment) -> None:
+        previous = self._environment
+        try:
+            self._environment = environment
+            for stmt in statements:
+                self._execute(stmt)
+        finally:
+            self._environment = previous
 
     def _is_truthy(self, obj: object) -> bool:
         if obj is None or obj == False or obj == "nil":
