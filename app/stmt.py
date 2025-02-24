@@ -10,6 +10,9 @@ R = TypeVar("R")
 
 class Visitor(Generic[R]):
     @abstractmethod
+    def visit_block_stmt(self, stmt: "Block") -> R: ...
+
+    @abstractmethod
     def visit_expression_stmt(self, stmt: "Expression") -> R: ...
 
     @abstractmethod
@@ -22,6 +25,14 @@ class Visitor(Generic[R]):
 class Stmt(ABC):
     @abstractmethod
     def accept(self, visitor: Visitor[R]): ...
+
+
+@dataclass
+class Block(Stmt):
+    statements: list[Stmt]
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_block_stmt(self)
 
 
 @dataclass
