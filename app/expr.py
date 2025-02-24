@@ -9,6 +9,9 @@ R = TypeVar("R")
 
 class Visitor(Generic[R]):
     @abstractmethod
+    def visit_assign_expr(self, expr: "Assign") -> R: ...
+
+    @abstractmethod
     def visit_binary_expr(self, expr: "Binary") -> R: ...
 
     @abstractmethod
@@ -27,6 +30,15 @@ class Visitor(Generic[R]):
 class Expr(ABC):
     @abstractmethod
     def accept(self, visitor: Visitor[R]): ...
+
+
+@dataclass
+class Assign(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_assign_expr(self)
 
 
 @dataclass
