@@ -219,3 +219,21 @@ global b
 global c
 """
         )
+
+    def test_can_execute_if_statemens(self, capsys):
+        source = """
+        var foo;
+        if (17 < 42) {
+            foo = "bar";
+        } else {
+            foo = "baz";
+        }
+        print foo;
+        """
+
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "bar\n"

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
-from app.stmt import Block, Expression, Print, Stmt, Var
+from app.stmt import Block, Expression, If, Print, Stmt, Var
 from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
 
@@ -100,6 +100,12 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         val = self._evaluate(stmt.expression)
         print(self._stringify(val))
 
+    def visit_if_stmt(self, stmt: If) -> None:
+        if self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.then_branch)
+        elif stmt.else_branch:
+            self._execute(stmt.else_branch)
+    
     def visit_block_stmt(self, stmt: Block) -> None:
         self._execute_block(stmt.statements, Environment(enclosing=self._environment))
 
