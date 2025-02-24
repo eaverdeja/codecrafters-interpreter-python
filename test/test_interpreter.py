@@ -166,12 +166,15 @@ class TestInterpretAll:
     def test_can_execute_variable_assignments(self, capsys):
         source = """
         var foo = 1;
-        foo = 2;
+        var bar = 3;
+        foo = bar = 2;
         print foo;
+        print bar;
+        print foo = 3;
         """
         stmts = self.generate_statements(source)
 
         Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
 
         captured = capsys.readouterr()
-        assert captured.out == "2\n"
+        assert captured.out == "2\n2\n3\n"
