@@ -3,7 +3,7 @@ from typing import Callable
 
 from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from app.scanner import Token, TokenType
-from app.stmt import Block, Expression, Print, Stmt, Var
+from app.stmt import Block, Expression, If, Print, Stmt, Var
 
 
 class ParseError(RuntimeError): ...
@@ -16,8 +16,9 @@ class Parser:
 
     program        → declaration* EOF ;
     declaration    → varDecl | statement ;
-    statement      → exprStmt | printStmt | block ;
+    statement      → exprStmt | ifStmt |  printStmt | block ;
     exprStmt       → expression ";" ;
+    ifStmt         → "if" "(" expression ")" statetment ( "else" statement )? ;
     printStmt      → "print" expression ";" ;
     block          → "{" declaration* "}" ;
 
@@ -158,6 +159,8 @@ class Parser:
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        if self._match(TokenType.IF):
+            return self._if_statement()
         if self._match(TokenType.LEFT_BRACE):
             return Block(self._block())
         return self._expression_statement()
@@ -166,6 +169,19 @@ class Parser:
         val = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(val)
+    
+    def _if_statement(self) -> Stmt:
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        then_branch = self._statement()
+        else_branch = None
+        if self._match(TokenType.ELSE):
+            else_branch = self._statement()
+
+        return If(condition, then_branch, else_branch)
+         
 
     def _block(self) -> list[Stmt]:
         statements: list[Stmt] = []

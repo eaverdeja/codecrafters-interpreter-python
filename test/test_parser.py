@@ -1,9 +1,9 @@
 from unittest import mock
 from unittest.mock import MagicMock
-from app.expr import Assign, Binary, Grouping, Literal, Unary
+from app.expr import Assign, Binary, Grouping, Literal, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Block, Expression, Print, Var
+from app.stmt import Block, Expression, If, Print, Var
 
 
 class TestParse:
@@ -265,5 +265,78 @@ class TestParseAll:
                         initializer=Literal(value="baz"),
                     )
                 ]
+            ),
+        ]
+
+    def test_parses_if_statements(self):
+        source = """
+        var foo;
+        if (17 < 42) {
+            foo = "bar";
+        } else {
+            foo = "baz";
+        }
+        print foo;
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        print(stmts)
+        assert stmts == [
+            Var(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=2
+                ),
+                initializer=None,
+            ),
+            If(
+                condition=Binary(
+                    left=Literal(value=17.0),
+                    operator=Token(
+                        token_type=TokenType.LESS, lexeme="<", literal=None, line=3
+                    ),
+                    right=Literal(value=42.0),
+                ),
+                then_branch=Block(
+                    statements=[
+                        Expression(
+                            expression=Assign(
+                                name=Token(
+                                    token_type=TokenType.IDENTIFIER,
+                                    lexeme="foo",
+                                    literal=None,
+                                    line=4,
+                                ),
+                                value=Literal(value="bar"),
+                            )
+                        )
+                    ]
+                ),
+                else_branch=Block(
+                    statements=[
+                        Expression(
+                            expression=Assign(
+                                name=Token(
+                                    token_type=TokenType.IDENTIFIER,
+                                    lexeme="foo",
+                                    literal=None,
+                                    line=6,
+                                ),
+                                value=Literal(value="baz"),
+                            )
+                        )
+                    ]
+                ),
+            ),
+            Print(
+                expression=Variable(
+                    name=Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="foo",
+                        literal=None,
+                        line=8,
+                    )
+                )
             ),
         ]
