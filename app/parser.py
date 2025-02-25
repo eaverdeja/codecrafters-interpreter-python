@@ -195,6 +195,8 @@ class Parser:
             return self._if_statement()
         if self._match(TokenType.WHILE):
             return self._while_statement()
+        if self._match(TokenType.FOR):
+            return self._for_statement()
         if self._match(TokenType.LEFT_BRACE):
             return Block(self._block())
         return self._expression_statement()
@@ -224,6 +226,41 @@ class Parser:
         body = self._statement()
 
         return While(condition, body)
+
+    def _for_statement(self) -> Stmt:
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+
+        initializer: Stmt | None
+        if self._match(TokenType.SEMICOLON):
+            initializer = None
+        elif self._match(TokenType.VAR):
+            initializer = self._var_declaration()
+        else:
+            initializer = self._expression_statement()
+
+        condition: Expr
+        if not self._check(TokenType.SEMICOLON):
+            condition = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
+
+        increment: Expr | None = None
+        if not self._check(TokenType.RIGHT_PAREN):
+            increment = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "expect ')' after for clauses.")
+
+        body = self._statement()
+
+        if increment:
+            body = Block([body, Expression(increment)])
+
+        if not condition:
+            condition = Literal("true")
+        body = While(condition, body)
+
+        if initializer:
+            body = Block([initializer, body])
+
+        return body
 
     def _block(self) -> list[Stmt]:
         statements: list[Stmt] = []
