@@ -7,7 +7,18 @@ from app.environment import Environment
 from app.exceptions import RuntimeException
 from app.lox_callable import LoxCallable
 from app.lox_function import LoxFunction
-from app.stmt import Block, Expression, Function, If, Print, Stmt, Var, While
+from app.returner import Return
+from app.stmt import (
+    Block,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return as ReturnStmt,
+    Stmt,
+    Var,
+    While,
+)
 from app.expr import (
     Assign,
     Binary,
@@ -171,6 +182,13 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     def visit_function_stmt(self, stmt: Function) -> None:
         function = LoxFunction(stmt)
         self._environment.define(stmt.name.lexeme, function)
+
+    def visit_return_stmt(self, stmt: ReturnStmt) -> None:
+        value: object = None
+        if stmt.value:
+            value = self._evaluate(stmt.value)
+
+        raise Return(value)
 
     def visit_variable_expr(self, expr: Variable) -> object:
         return self._environment.get(expr.name)

@@ -298,3 +298,15 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "3\n"
+
+    def test_can_execute_functions_with_return_statements(self, capsys):
+        source = """
+        fun bar(a, b) { return a * b; }
+        print(bar(2, 2));
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "4\n"
