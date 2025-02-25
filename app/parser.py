@@ -33,6 +33,7 @@ class Parser:
                     | printStmt
                     | whileStmt
                     | forStmt
+                    | returnStmt
                     | block ;
     exprStmt       → expression ";" ;
     ifStmt         → "if" "(" expression ")" statetment ( "else" statement )? ;
@@ -41,6 +42,7 @@ class Parser:
     forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                      expression? ";"
                      expression? ")" statement ;
+    returnStmt     → "return" expression? ";" ;
     block          → "{" declaration* "}" ;
 
     expression     → assignment ;

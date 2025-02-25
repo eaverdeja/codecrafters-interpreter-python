@@ -37,6 +37,7 @@ class GenerateAst:
                 "If > condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
                 "Print > expression: Expr",
                 "While > condition: Expr, body: Stmt",
+                "Return > keyword: Token, value: Expr | None",
                 "Var > name: Token, initializer: Expr | None",
             ],
         )

@@ -28,6 +28,9 @@ class Visitor(Generic[R]):
     def visit_while_stmt(self, stmt: "While") -> R: ...
 
     @abstractmethod
+    def visit_return_stmt(self, stmt: "Return") -> R: ...
+
+    @abstractmethod
     def visit_var_stmt(self, stmt: "Var") -> R: ...
 
 
@@ -87,6 +90,15 @@ class While(Stmt):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_while_stmt(self)
+
+
+@dataclass
+class Return(Stmt):
+    keyword: Token
+    value: Expr | None
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_return_stmt(self)
 
 
 @dataclass
