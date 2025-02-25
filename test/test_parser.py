@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from app.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Block, Expression, If, Print, Var, While
+from app.stmt import Block, Expression, Function, If, Print, Var, While
 
 
 class TestParse:
@@ -504,5 +504,21 @@ class TestParseAll:
                     ),
                     arguments=[Literal(value=1.0), Literal(value=2.0)],
                 )
+            )
+        ]
+
+    def test_parses_function_declarations_without_arguments(self):
+        source = 'fun foo() { print "foo!"; }'
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Function(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=1
+                ),
+                params=[],
+                body=[Print(expression=Literal(value="foo!"))],
             )
         ]

@@ -13,7 +13,7 @@ from app.expr import (
     Variable,
 )
 from app.scanner import Token, TokenType
-from app.stmt import Block, Expression, If, Print, Stmt, Var, While
+from app.stmt import Block, Expression, Function, If, Print, Stmt, Var, While
 
 
 class ParseError(RuntimeError): ...
@@ -219,6 +219,8 @@ class Parser:
 
     def _declaration(self) -> Stmt | None:
         try:
+            if self._match(TokenType.FUN):
+                return self._function("function")
             if self._match(TokenType.VAR):
                 return self._var_declaration()
 
@@ -315,6 +317,26 @@ class Parser:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
+
+    def _function(self, kind: str) -> Stmt:
+        name = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
+        self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind} name.")
+        parameters: list[Token] = []
+        if not self._check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) > 255:
+                    self._error(self._peek(), "Can't have more than 255 parameters.")
+                parameters.append(
+                    self._consume(TokenType.IDENTIFIER, "Expect parameter name.")
+                )
+                if not self._match(TokenType.COMMA):
+                    break
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before" + f" {kind} body.")
+        body = self._block()
+
+        return Function(name, parameters, body)
 
     def _var_declaration(self) -> Stmt:
         name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
