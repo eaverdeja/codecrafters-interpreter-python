@@ -25,7 +25,9 @@ class Parser:
     Grammar
 
     program        → declaration* EOF ;
-    declaration    → varDecl | statement ;
+    declaration    → varDecl
+                    | funDecl
+                    | statement ;
     statement      → exprStmt
                     | ifStmt
                     | printStmt
@@ -59,6 +61,9 @@ class Parser:
                     | "(" expression ")"
                     | IDENTIFIER ;
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+    funDecl        → "fun" function ;
+    function       → IDENTIFIER "(" parameters? ")" block ;
+    parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
     """
 
     tokens: list[Token]

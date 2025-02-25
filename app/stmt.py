@@ -16,6 +16,9 @@ class Visitor(Generic[R]):
     def visit_expression_stmt(self, stmt: "Expression") -> R: ...
 
     @abstractmethod
+    def visit_function_stmt(self, stmt: "Function") -> R: ...
+
+    @abstractmethod
     def visit_if_stmt(self, stmt: "If") -> R: ...
 
     @abstractmethod
@@ -47,6 +50,16 @@ class Expression(Stmt):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_expression_stmt(self)
+
+
+@dataclass
+class Function(Stmt):
+    name: Token
+    params: list[Token]
+    body: list[Stmt]
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_function_stmt(self)
 
 
 @dataclass
