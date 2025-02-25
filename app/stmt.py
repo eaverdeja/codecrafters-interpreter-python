@@ -50,7 +50,7 @@ class Expression(Stmt):
 class If(Stmt):
     condition: Expr
     then_branch: Stmt
-    else_branch: Stmt
+    else_branch: Stmt | None
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_if_stmt(self)
