@@ -1,11 +1,23 @@
-from typing import Callable, TypeGuard
+from typing import Callable, TypeGuard, cast
 from dataclasses import dataclass, field
+import time
 
 from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
+from app.lox_callable import LoxCallable
 from app.stmt import Block, Expression, If, Print, Stmt, Var, While
-from app.expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
+from app.expr import (
+    Assign,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from app.scanner import Token, TokenType
 
 
@@ -13,7 +25,18 @@ from app.scanner import Token, TokenType
 class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     error_reporter: Callable[..., None]
 
-    _environment: Environment = field(default_factory=Environment)
+    _globals: Environment = field(default_factory=Environment)
+    _environment: Environment = field(init=False)
+
+    def __post_init__(self):
+        class Clock(LoxCallable):
+            def call(
+                self, _interpreter: Interpreter, _arguments: list[object]
+            ) -> object:
+                return time.time()
+
+        self._globals.define("clock", Clock())
+        self._environment = self._globals
 
     def interpret(self, expr: Expr) -> str | None:
         try:
@@ -53,6 +76,16 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def visit_grouping_expr(self, expr: Grouping) -> object:
         return self._evaluate(expr.expression)
+
+    def visit_call_expr(self, expr: Call) -> object:
+        callee = self._evaluate(expr.callee)
+
+        arguments = []
+        for argument in expr.arguments:
+            arguments.append(self._evaluate(argument))
+
+        function = cast(LoxCallable, callee)
+        return function.call(self, arguments)
 
     def visit_unary_expr(self, expr: Unary) -> object:
         right = self._evaluate(expr.right)

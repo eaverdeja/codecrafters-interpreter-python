@@ -1,3 +1,4 @@
+import time
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -261,3 +262,15 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "1\n2\n"
+
+    def test_can_execute_native_functions(self, capsys):
+        source = "print clock();"
+        stmts = self.generate_statements(source)
+
+        start_time = time.time()
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+        end_time = time.time()
+
+        captured = capsys.readouterr()
+        captured_time = float(captured.out.strip("\n"))
+        assert start_time < captured_time < end_time
