@@ -522,3 +522,37 @@ class TestParseAll:
                 body=[Print(expression=Literal(value="foo!"))],
             )
         ]
+
+    def test_parses_function_declarations_with_arguments(self):
+        source = "fun foo(a) { print a; }"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Function(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=1
+                ),
+                params=[
+                    Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="a",
+                        literal=None,
+                        line=1,
+                    )
+                ],
+                body=[
+                    Print(
+                        expression=Variable(
+                            name=Token(
+                                token_type=TokenType.IDENTIFIER,
+                                lexeme="a",
+                                literal=None,
+                                line=1,
+                            )
+                        )
+                    )
+                ],
+            )
+        ]

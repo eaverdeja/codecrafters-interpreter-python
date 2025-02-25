@@ -286,3 +286,15 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "10\n"
+
+    def test_can_execute_functions_with_arguments(self, capsys):
+        source = """
+        fun bar(a, b) { print a + b; }
+        bar(1, 2);
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "3\n"
