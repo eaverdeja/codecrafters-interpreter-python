@@ -1,7 +1,17 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from app.expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
+from app.expr import (
+    Assign,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from app.scanner import Token, TokenType
 from app.stmt import Block, Expression, If, Print, Stmt, Var, While
 
@@ -159,7 +169,29 @@ class Parser:
             right = self._unary()
             return Unary(operator, right)
 
-        return self._primary()
+        return self._call()
+
+    def _call(self) -> Expr:
+        expr = self._primary()
+
+        while self._match(TokenType.LEFT_PAREN):
+            expr = self._finish_call(expr)
+
+        return expr
+
+    def _finish_call(self, callee: Expr) -> Expr:
+        arguments: list[Expr] = []
+        if not self._check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(arguments) > 255:
+                    self._error(self._peek(), "Can't have more than 255 arguments.")
+                arguments.append(self._expression())
+                if not self._match(TokenType.COMMA):
+                    break
+
+        paren = self._consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
+
+        return Call(callee, paren, arguments)
 
     def _primary(self) -> Expr:
         if self._match(TokenType.FALSE):
@@ -186,7 +218,7 @@ class Parser:
                 return self._var_declaration()
 
             return self._statement()
-        except ParseError:
+        except ParseError as e:
             self._synchronize()
             return None
 

@@ -1,6 +1,6 @@
 from unittest import mock
 from unittest.mock import MagicMock
-from app.expr import Assign, Binary, Grouping, Literal, Logical, Unary, Variable
+from app.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 from app.stmt import Block, Expression, If, Print, Var, While
@@ -448,5 +448,61 @@ class TestParseAll:
                         ),
                     ),
                 ]
+            )
+        ]
+
+    def test_parses_function_calls_without_arguments(self):
+        source = "foo();"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Call(
+                    callee=Variable(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="foo",
+                            literal=None,
+                            line=1,
+                        )
+                    ),
+                    paren=Token(
+                        token_type=TokenType.RIGHT_PAREN,
+                        lexeme=")",
+                        literal=None,
+                        line=1,
+                    ),
+                    arguments=[],
+                )
+            )
+        ]
+
+    def test_parses_function_calls_with_arguments(self):
+        source = "foo(1, 2);"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Call(
+                    callee=Variable(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="foo",
+                            literal=None,
+                            line=1,
+                        )
+                    ),
+                    paren=Token(
+                        token_type=TokenType.RIGHT_PAREN,
+                        lexeme=")",
+                        literal=None,
+                        line=1,
+                    ),
+                    arguments=[Literal(value=1.0), Literal(value=2.0)],
+                )
             )
         ]
