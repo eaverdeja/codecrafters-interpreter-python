@@ -274,3 +274,15 @@ global c
         captured = capsys.readouterr()
         captured_time = float(captured.out.strip("\n"))
         assert start_time < captured_time < end_time
+
+    def test_can_execute_functions_with_no_arguments(self, capsys):
+        source = """
+        fun bar() { print 10; }
+        bar();
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "10\n"
