@@ -20,11 +20,15 @@ class Parser:
                     | ifStmt
                     | printStmt
                     | whileStmt
+                    | forStmt
                     | block ;
     exprStmt       → expression ";" ;
     ifStmt         → "if" "(" expression ")" statetment ( "else" statement )? ;
     printStmt      → "print" expression ";" ;
     whileStmt      → "while" "(" expression ")" statement ;
+    forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                     expression? ";"
+                     expression? ")" statement ;
     block          → "{" declaration* "}" ;
 
     expression     → assignment ;
