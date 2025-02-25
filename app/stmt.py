@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
 from app.scanner import Token
+from app.expr import Expr
 
 R = TypeVar("R")
 
