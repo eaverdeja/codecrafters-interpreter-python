@@ -246,3 +246,18 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "true\n"
+
+    def test_can_execute_while_statements(self, capsys):
+        source = """
+        var i = 0;
+        while (i < 2) {
+            i = i + 1;
+            print i;
+        }
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "1\n2\n"
