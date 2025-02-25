@@ -237,3 +237,12 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "bar\n"
+
+    def test_can_execute_logical_expressions(self, capsys):
+        source = "print true or false and true;"
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "true\n"

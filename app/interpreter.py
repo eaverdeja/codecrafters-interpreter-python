@@ -5,7 +5,7 @@ from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
 from app.stmt import Block, Expression, If, Print, Stmt, Var
-from app.expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from app.expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
 from app.scanner import Token, TokenType
 
 
@@ -38,6 +38,18 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         if expr.value == "false":
             return False
         return expr.value
+
+    def visit_logical_expr(self, expr: Logical) -> object:
+        left = self._evaluate(expr.left)
+
+        if expr.operator.token_type == TokenType.OR:
+            if self._is_truthy(left):
+                return left
+        else:
+            if not self._is_truthy(left):
+                return left
+
+        return self._evaluate(expr.right)
 
     def visit_grouping_expr(self, expr: Grouping) -> object:
         return self._evaluate(expr.expression)
@@ -105,7 +117,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             self._execute(stmt.then_branch)
         elif stmt.else_branch:
             self._execute(stmt.else_branch)
-    
+
     def visit_block_stmt(self, stmt: Block) -> None:
         self._execute_block(stmt.statements, Environment(enclosing=self._environment))
 
