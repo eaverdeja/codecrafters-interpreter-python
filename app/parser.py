@@ -13,7 +13,7 @@ from app.expr import (
     Variable,
 )
 from app.scanner import Token, TokenType
-from app.stmt import Block, Expression, Function, If, Print, Stmt, Var, While
+from app.stmt import Block, Expression, Function, If, Print, Return, Stmt, Var, While
 
 
 class ParseError(RuntimeError): ...
@@ -242,6 +242,8 @@ class Parser:
             return self._for_statement()
         if self._match(TokenType.LEFT_BRACE):
             return Block(self._block())
+        if self._match(TokenType.RETURN):
+            return self._return_statement()
         return self._expression_statement()
 
     def _print_statement(self) -> Stmt:
@@ -304,6 +306,16 @@ class Parser:
             body = Block([initializer, body])
 
         return body
+
+    def _return_statement(self) -> Stmt:
+        keyword = self._previous()
+
+        value: Expr | None = None
+        if not self._check(TokenType.SEMICOLON):
+            value = self._expression()
+
+        self._consume(TokenType.SEMICOLON, "Expected ';' after return value.")
+        return Return(keyword, value)
 
     def _block(self) -> list[Stmt]:
         statements: list[Stmt] = []

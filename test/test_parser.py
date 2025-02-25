@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from app.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Block, Expression, Function, If, Print, Var, While
+from app.stmt import Block, Expression, Function, If, Print, Return, Var, While
 
 
 class TestParse:
@@ -552,6 +552,46 @@ class TestParseAll:
                                 line=1,
                             )
                         )
+                    )
+                ],
+            )
+        ]
+
+    def test_parses_return_statements(self):
+        source = "fun foo(a) { return a; }"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Function(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="foo", literal=None, line=1
+                ),
+                params=[
+                    Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="a",
+                        literal=None,
+                        line=1,
+                    )
+                ],
+                body=[
+                    Return(
+                        keyword=Token(
+                            token_type=TokenType.RETURN,
+                            lexeme="return",
+                            literal=None,
+                            line=1,
+                        ),
+                        value=Variable(
+                            name=Token(
+                                token_type=TokenType.IDENTIFIER,
+                                lexeme="a",
+                                literal=None,
+                                line=1,
+                            )
+                        ),
                     )
                 ],
             )
