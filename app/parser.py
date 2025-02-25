@@ -24,7 +24,10 @@ class Parser:
 
     expression     → assignment ;
     assignment     → IDENTIFIER "=" assignment
-                    | equality ;
+                    | equality
+                    | logic_or ;
+    logic_or       → logic_and ( "or" logic_and )* ;
+    logic_and      → equality ( "and" equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -169,7 +172,7 @@ class Parser:
         val = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(val)
-    
+
     def _if_statement(self) -> Stmt:
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
         condition = self._expression()
@@ -181,7 +184,6 @@ class Parser:
             else_branch = self._statement()
 
         return If(condition, then_branch, else_branch)
-         
 
     def _block(self) -> list[Stmt]:
         statements: list[Stmt] = []
