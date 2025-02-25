@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
 from app.scanner import Token
-from app.expr import Expr
 
 R = TypeVar("R")
 
@@ -20,6 +19,9 @@ class Visitor(Generic[R]):
 
     @abstractmethod
     def visit_print_stmt(self, stmt: "Print") -> R: ...
+
+    @abstractmethod
+    def visit_while_stmt(self, stmt: "While") -> R: ...
 
     @abstractmethod
     def visit_var_stmt(self, stmt: "Var") -> R: ...
@@ -62,6 +64,15 @@ class Print(Stmt):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_print_stmt(self)
+
+
+@dataclass
+class While(Stmt):
+    condition: Expr
+    body: Stmt
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_while_stmt(self)
 
 
 @dataclass

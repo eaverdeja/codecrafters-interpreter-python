@@ -16,10 +16,15 @@ class Parser:
 
     program        → declaration* EOF ;
     declaration    → varDecl | statement ;
-    statement      → exprStmt | ifStmt |  printStmt | block ;
+    statement      → exprStmt
+                    | ifStmt
+                    | printStmt
+                    | whileStmt
+                    | block ;
     exprStmt       → expression ";" ;
     ifStmt         → "if" "(" expression ")" statetment ( "else" statement )? ;
     printStmt      → "print" expression ";" ;
+    whileStmt      → "while" "(" expression ")" statement ;
     block          → "{" declaration* "}" ;
 
     expression     → assignment ;
