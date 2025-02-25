@@ -3,7 +3,7 @@ from typing import Callable
 
 from app.expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
 from app.scanner import Token, TokenType
-from app.stmt import Block, Expression, If, Print, Stmt, Var
+from app.stmt import Block, Expression, If, Print, Stmt, Var, While
 
 
 class ParseError(RuntimeError): ...
@@ -189,6 +189,8 @@ class Parser:
             return self._print_statement()
         if self._match(TokenType.IF):
             return self._if_statement()
+        if self._match(TokenType.WHILE):
+            return self._while_statement()
         if self._match(TokenType.LEFT_BRACE):
             return Block(self._block())
         return self._expression_statement()
@@ -209,6 +211,15 @@ class Parser:
             else_branch = self._statement()
 
         return If(condition, then_branch, else_branch)
+
+    def _while_statement(self) -> Stmt:
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.")
+
+        body = self._statement()
+
+        return While(condition, body)
 
     def _block(self) -> list[Stmt]:
         statements: list[Stmt] = []

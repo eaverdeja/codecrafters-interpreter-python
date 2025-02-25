@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from app.expr import Assign, Binary, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Block, Expression, If, Print, Var
+from app.stmt import Block, Expression, If, Print, Var, While
 
 
 class TestParse:
@@ -361,5 +361,24 @@ class TestParseAll:
                     ),
                     right=Literal(value="true"),
                 )
+            )
+        ]
+
+    def test_parses_while_statements(self):
+        source = """
+        while (true) {
+            print "forever and ever";
+        }
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            While(
+                condition=Literal(value="true"),
+                body=Block(
+                    statements=[Print(expression=Literal(value="forever and ever"))]
+                ),
             )
         ]
