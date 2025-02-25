@@ -1,6 +1,6 @@
 from unittest import mock
 from unittest.mock import MagicMock
-from app.expr import Assign, Binary, Grouping, Literal, Unary, Variable
+from app.expr import Assign, Binary, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 from app.stmt import Block, Expression, If, Print, Var
@@ -282,7 +282,6 @@ class TestParseAll:
 
         stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
 
-        print(stmts)
         assert stmts == [
             Var(
                 name=Token(
@@ -339,4 +338,28 @@ class TestParseAll:
                     )
                 )
             ),
+        ]
+
+    def test_parses_logical_operators(self):
+        source = "true and false or true;"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Logical(
+                    left=Logical(
+                        left=Literal(value="true"),
+                        operator=Token(
+                            token_type=TokenType.AND, lexeme="and", literal=None, line=1
+                        ),
+                        right=Literal(value="false"),
+                    ),
+                    operator=Token(
+                        token_type=TokenType.OR, lexeme="or", literal=None, line=1
+                    ),
+                    right=Literal(value="true"),
+                )
+            )
         ]
