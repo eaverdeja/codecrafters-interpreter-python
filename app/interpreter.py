@@ -42,6 +42,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def __post_init__(self):
         class Clock(LoxCallable):
+            def arity(self):
+                return 0
+
             def call(
                 self, _interpreter: Interpreter, _arguments: list[object]
             ) -> object:
@@ -96,8 +99,16 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         for argument in expr.arguments:
             arguments.append(self._evaluate(argument))
 
-        function = cast(LoxCallable, callee)
-        return function.call(self, arguments)
+        if not isinstance(callee, LoxCallable):
+            raise RuntimeException(expr.paren, "Can only call functions and classes.")
+
+        if len(arguments) != callee.arity():
+            raise RuntimeException(
+                expr.paren,
+                f"Expected {callee.arity()} arguments but got {len(arguments)}.",
+            )
+
+        return callee.call(self, arguments)
 
     def visit_unary_expr(self, expr: Unary) -> object:
         right = self._evaluate(expr.right)

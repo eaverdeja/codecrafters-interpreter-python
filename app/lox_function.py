@@ -10,6 +10,9 @@ class LoxFunction(LoxCallable):
     declaration: Function
     closure: Environment
 
+    def arity(self) -> int:
+        return len(self.declaration.params)
+
     def call(self, interpreter, arguments) -> None:
         environment = Environment(enclosing=self.closure)
         for i in range(0, len(self.declaration.params)):
