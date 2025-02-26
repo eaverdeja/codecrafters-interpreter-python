@@ -8,9 +8,10 @@ from app.stmt import Function
 @dataclass
 class LoxFunction(LoxCallable):
     declaration: Function
+    closure: Environment
 
     def call(self, interpreter, arguments) -> None:
-        environment = Environment(enclosing=interpreter._globals)
+        environment = Environment(enclosing=self.closure)
         for i in range(0, len(self.declaration.params)):
             environment.define(self.declaration.params[i].lexeme, arguments[i])
 

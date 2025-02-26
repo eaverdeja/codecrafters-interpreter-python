@@ -310,3 +310,25 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "4\n"
+
+    def test_can_execute_higher_order_functions(self, capsys):
+        source = """
+        fun makeFilter(min) {
+            fun filter(n) {
+                if (n < min) {
+                    return false;
+                }
+                return true;
+            }
+            return filter;
+        }
+
+        var greaterThan55 = makeFilter(55);
+        print(greaterThan55(60));
+        """
+        stmts = self.generate_statements(source)
+
+        Interpreter(error_reporter=MagicMock()).interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "true\n"

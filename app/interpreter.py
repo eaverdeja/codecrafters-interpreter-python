@@ -180,7 +180,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         self._environment.define(stmt.name.lexeme, val)
 
     def visit_function_stmt(self, stmt: Function) -> None:
-        function = LoxFunction(stmt)
+        function = LoxFunction(stmt, self._environment)
         self._environment.define(stmt.name.lexeme, function)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:
