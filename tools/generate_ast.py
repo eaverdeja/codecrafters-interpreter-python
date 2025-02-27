@@ -97,7 +97,7 @@ class GenerateAst:
     ) -> None:
         f.writelines(
             [
-                "@dataclass\n",
+                "@dataclass(frozen=True)\n",
                 f"class {class_name}({base_name}):\n",
                 *(f"\t{field.strip()}\n" for field in fields.split(",")),
                 "\n",

@@ -56,7 +56,7 @@ class TokenType(StrEnum):
         return f"{self.__class__.__name__}.{self.name}"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Token:
     token_type: TokenType
     lexeme: str
