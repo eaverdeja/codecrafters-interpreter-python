@@ -38,6 +38,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     error_reporter: Callable[..., None]
 
     _globals: Environment = field(default_factory=Environment)
+    _locals: dict[Expr, int] = field(default_factory=dict)
     _environment: Environment = field(init=False)
 
     def __post_init__(self):
@@ -67,6 +68,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
                 self._execute(statement)
         except RuntimeException as e:
             self.error_reporter(e)
+
+    def resolve(self, expr: Expr, depth: int) -> None:
+        self._locals[expr] = depth
 
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
@@ -202,11 +206,15 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         raise Return(value)
 
     def visit_variable_expr(self, expr: Variable) -> object:
-        return self._environment.get(expr.name)
+        return self._lookup_variable(expr.name, expr)
 
     def visit_assign_expr(self, expr: Assign) -> object:
         val = self._evaluate(expr.value)
-        self._environment.assign(expr.name, val)
+        distance = self._locals.get(expr)
+        if distance is not None:
+            self._environment.assign_at(distance, expr.name, val)
+        else:
+            self._globals.assign(expr.name, val)
         return val
 
     def _evaluate(self, expr: Expr) -> object:
@@ -223,6 +231,12 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
                 self._execute(stmt)
         finally:
             self._environment = previous
+
+    def _lookup_variable(self, name: Token, expr: Variable) -> object:
+        distance = self._locals.get(expr)
+        if distance is None:
+            return self._globals.get(name)
+        return self._environment.get_at(distance, name)
 
     def _is_truthy(self, obj: object) -> bool:
         if obj is None or obj == False or obj == "nil":

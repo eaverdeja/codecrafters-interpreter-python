@@ -17,12 +17,14 @@ class Environment:
         if name.lexeme in self.values:
             self.values[name.lexeme] = value
             return
-        
         if self.enclosing:
             self.enclosing.assign(name, value)
             return
 
         raise RuntimeException(name, f"Undefined variable '{name.lexeme}'")
+
+    def assign_at(self, distance: int, name: Token, val: object) -> None:
+        self._ancestor(distance).values[name.lexeme] = val
 
     def get(self, name: Token) -> object:
         if name.lexeme in self.values:
@@ -31,3 +33,16 @@ class Environment:
             return self.enclosing.get(name)
 
         raise RuntimeException(name, f"Undefined variable '{name.lexeme}'.")
+
+    def get_at(self, distance: int, name: Token) -> object:
+        return self._ancestor(distance).values[name.lexeme]
+
+    def _ancestor(self, distance: int) -> Self:
+        environment = self
+        for _ in range(0, distance):
+            if not self.enclosing:
+                raise AssertionError(
+                    "Could not reach designated environment for variable."
+                )
+            environment = self.enclosing
+        return environment
