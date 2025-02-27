@@ -1,5 +1,4 @@
 import time
-from unittest import mock
 from unittest.mock import MagicMock
 
 from pytest import CaptureFixture
@@ -187,17 +186,17 @@ class TestInterpretAll:
         var b = "global b";
         var c = "global c";
         {
-        var a = "outer a";
-        var b = "outer b";
-        {
-            var a = "inner a";
+            var a = "outer a";
+            var b = "outer b";
+            {
+                var a = "inner a";
+                print a;
+                print b;
+                print c;
+            }
             print a;
             print b;
             print c;
-        }
-        print a;
-        print b;
-        print c;
         }
         print a;
         print b;
