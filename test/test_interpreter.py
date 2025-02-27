@@ -6,6 +6,7 @@ from pytest import CaptureFixture
 from app.expr import Expr
 from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
+from app.resolver import Resolver
 from app.scanner import Scanner, Token, TokenType
 from app.stmt import Stmt
 
@@ -332,3 +333,25 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "true\n"
+
+    def test_can_properly_bind_variables_when_coupled_with_a_resolver(self, capsys):
+        source = """
+        var a = "global";
+        {
+            fun showA() {
+                print a;
+            }
+
+            showA();
+            var a = "block";
+            showA();
+        }
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "global\nglobal\n"
