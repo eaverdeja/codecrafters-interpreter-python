@@ -355,3 +355,16 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "global\nglobal\n"
+
+    def test_can_properly_detect_illegal_top_level_return_statements(self):
+        source = 'return "at the top-level";'
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+
+        error_reporter = MagicMock()
+        Resolver(interpreter, error_reporter=error_reporter).resolve(stmts)
+
+        error_reporter.assert_called_once_with(
+            Token(token_type=TokenType.RETURN, lexeme="return", literal=None, line=1),
+            "Can't return from top-level code.",
+        )

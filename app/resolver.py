@@ -1,17 +1,25 @@
 from dataclasses import dataclass, field
 from collections import deque
 from typing import Callable, Deque
+from enum import StrEnum, auto
 
 from app import expr, stmt
 from app.interpreter import Interpreter
 from app.scanner import Token
 
 
+class FunctionType(StrEnum):
+    NONE = auto()
+    FUNCTION = auto()
+
+
 @dataclass
 class Resolver(expr.Visitor, stmt.Visitor):
     interpreter: Interpreter
     error_reporter: Callable[[Token, str], None]
+
     scopes: Deque[dict[str, bool]] = field(default_factory=deque)
+    _current_function: FunctionType = field(default=FunctionType.NONE)
 
     def resolve(self, statements: list[stmt.Stmt]) -> None:
         for statement in statements:
@@ -44,7 +52,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._declare(stmt.name)
         self._define(stmt.name)
 
-        self._resolve_function(stmt)
+        self._resolve_function(stmt, FunctionType.FUNCTION)
 
     def visit_expression_stmt(self, stmt: stmt.Expression) -> None:
         self._resolve_expr(stmt.expression)
@@ -59,6 +67,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_expr(stmt.expression)
 
     def visit_return_stmt(self, stmt: stmt.Return) -> None:
+        if len(self.scopes) == 0:
+            self.error_reporter(stmt.keyword, "Can't return from top-level code.")
+            return
         if stmt.value:
             self._resolve_expr(stmt.value)
 
@@ -99,13 +110,20 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def _resolve_expr(self, expr: expr.Expr) -> None:
         expr.accept(self)
 
-    def _resolve_function(self, stmt: stmt.Function) -> None:
+    def _resolve_function(
+        self, stmt: stmt.Function, function_type: FunctionType
+    ) -> None:
+        enclosing_function = self._current_function
+        self._current_function = function_type
         self._begin_scope()
+
         for param in stmt.params:
             self._declare(param)
             self._define(param)
         self.resolve(stmt.body)
+
         self._end_scope()
+        self._current_function = enclosing_function
 
     def _declare(self, name: Token) -> None:
         if len(self.scopes) == 0:
