@@ -1,5 +1,5 @@
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from pytest import CaptureFixture
 from app.expr import Expr
@@ -366,4 +366,47 @@ global c
         error_reporter.assert_called_once_with(
             Token(token_type=TokenType.RETURN, lexeme="return", literal=None, line=1),
             "Can't return from top-level code.",
+        )
+
+    def test_can_properly_detect_unused_variables(self):
+        source = """
+        {
+            var a = "foo";
+            {
+                var b = "bar";
+            }
+            {
+                var c = "bazzz";
+                print c;
+            }
+            print "foo!";
+        }
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+
+        error_reporter = MagicMock()
+        Resolver(interpreter, error_reporter=error_reporter).resolve(stmts)
+
+        error_reporter.assert_has_calls(
+            [
+                call(
+                    Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="a",
+                        literal=None,
+                        line=3,
+                    ),
+                    "Unused variable.",
+                ),
+                call(
+                    Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="b",
+                        literal=None,
+                        line=5,
+                    ),
+                    "Unused variable.",
+                ),
+            ]
         )

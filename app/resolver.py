@@ -20,14 +20,16 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
     scopes: Deque[dict[str, bool]] = field(default_factory=deque)
     _current_function: FunctionType = field(default=FunctionType.NONE)
+    _existing_vars: list[Token] = field(default_factory=list)
+    _used_vars: list[Token] = field(default_factory=list)
 
     def resolve(self, statements: list[stmt.Stmt]) -> None:
-        for statement in statements:
-            self._resolve_stmt(statement)
+        self._resolve(statements)
+        self._report_unused_variables()
 
     def visit_block_stmt(self, stmt: stmt.Block) -> None:
         self._begin_scope()
-        self.resolve(stmt.statements)
+        self._resolve(stmt.statements)
         self._end_scope()
 
     def visit_var_stmt(self, stmt: stmt.Var) -> None:
@@ -104,6 +106,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def _end_scope(self) -> None:
         self.scopes.pop()
 
+    def _resolve(self, statements: list[stmt.Stmt]) -> None:
+        for statement in statements:
+            self._resolve_stmt(statement)
+
     def _resolve_stmt(self, statement: stmt.Stmt) -> None:
         statement.accept(self)
 
@@ -120,7 +126,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
         for param in stmt.params:
             self._declare(param)
             self._define(param)
-        self.resolve(stmt.body)
+        self._resolve(stmt.body)
 
         self._end_scope()
         self._current_function = enclosing_function
@@ -129,6 +135,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
         if len(self.scopes) == 0:
             return
         self.scopes[-1][name.lexeme] = False
+        self._existing_vars.append(name)
 
     def _define(self, name: Token) -> None:
         if len(self.scopes) == 0:
@@ -139,4 +146,14 @@ class Resolver(expr.Visitor, stmt.Visitor):
         for i in range(len(self.scopes) - 1, -1, -1):
             if name.lexeme in self.scopes[i]:
                 self.interpreter.resolve(expr, len(self.scopes) - 1 - i)
+                self._used_vars.append(name)
                 return
+
+    def _report_unused_variables(self) -> None:
+        unused_vars = set(self._existing_vars) - set(self._used_vars)
+        if not unused_vars:
+            return
+
+        for var in self._existing_vars:
+            if var in unused_vars:
+                self.error_reporter(var, "Unused variable.")
