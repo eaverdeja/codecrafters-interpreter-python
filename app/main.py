@@ -4,6 +4,7 @@ from app.ast_printer import AstPrinter
 from app.expr import Expr
 from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
+from app.resolver import Resolver
 from app.scanner import Scanner, Token, TokenType
 from app.stmt import Stmt
 
@@ -81,6 +82,12 @@ class Pylox:
         if self._had_error:
             return
 
+        resolver = Resolver(self._interpreter, error_reporter=self.resolution_error)
+        resolver.resolve(stmts)
+
+        if self._had_error:
+            return
+
         self._interpreter.interpret_all(stmts)
 
     def scan_file(self, filename: str) -> list[Token]:
@@ -106,14 +113,20 @@ class Pylox:
         self._report(line, "", message)
 
     def parse_error(self, token: Token, message: str) -> None:
-        if token.token_type == TokenType.EOF:
-            self._report(token.line, " at the end", message)
-        else:
-            self._report(token.line, f" at '{token.lexeme}'", message)
+        self._token_error(token, message)
+
+    def resolution_error(self, token: Token, message: str) -> None:
+        self._token_error(token, message)
 
     def runtime_error(self, error: RuntimeException) -> None:
         sys.stderr.write(f"{str(error)} \n[line {error.token.line}]")
         self._had_runtime_error = True
+
+    def _token_error(self, token: Token, message: str) -> None:
+        if token.token_type == TokenType.EOF:
+            self._report(token.line, " at the end", message)
+        else:
+            self._report(token.line, f" at '{token.lexeme}'", message)
 
     def _report(self, line: int, where: str, message: str):
         sys.stderr.write(f"[line {line}] Error{where}: {message}\n")
