@@ -1,6 +1,16 @@
 from unittest import mock
 from unittest.mock import MagicMock
-from app.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
+from app.expr import (
+    Assign,
+    Binary,
+    Call,
+    Get,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
 from app.stmt import Block, Class, Expression, Function, If, Print, Return, Var, While
@@ -640,5 +650,49 @@ class TestParseAll:
                         body=[Print(expression=Literal(value="bar!"))],
                     ),
                 ],
+            )
+        ]
+
+    def test_parses_get_expressions(self):
+        source = "foo.bar().baz;"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Get(
+                    object=Call(
+                        callee=Get(
+                            object=Variable(
+                                name=Token(
+                                    token_type=TokenType.IDENTIFIER,
+                                    lexeme="foo",
+                                    literal=None,
+                                    line=1,
+                                )
+                            ),
+                            name=Token(
+                                token_type=TokenType.IDENTIFIER,
+                                lexeme="bar",
+                                literal=None,
+                                line=1,
+                            ),
+                        ),
+                        paren=Token(
+                            token_type=TokenType.RIGHT_PAREN,
+                            lexeme=")",
+                            literal=None,
+                            line=1,
+                        ),
+                        arguments=[],
+                    ),
+                    name=Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="baz",
+                        literal=None,
+                        line=1,
+                    ),
+                )
             )
         ]
