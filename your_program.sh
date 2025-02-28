@@ -7,6 +7,7 @@
 # Learn more: https://codecrafters.io/program-interface
 
 set -e # Exit early if any commands fail
+export PIPENV_VERBOSITY=-1
 
 # Copied from .codecrafters/run.sh
 #
