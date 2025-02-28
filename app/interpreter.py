@@ -31,6 +31,7 @@ from app.expr import (
     Grouping,
     Literal,
     Logical,
+    Set,
     Unary,
     Variable,
 )
@@ -124,6 +125,15 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             raise RuntimeException(expr.name, "Only instances have properties.")
 
         return obj.get(expr.name)
+
+    def visit_set_expr(self, expr: Set) -> object:
+        obj = self._evaluate(expr.object)
+        if not isinstance(obj, LoxInstance):
+            raise RuntimeException(expr.name, "Only instances have fields.")
+
+        value = self._evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
 
     def visit_unary_expr(self, expr: Unary) -> object:
         right = self._evaluate(expr.right)

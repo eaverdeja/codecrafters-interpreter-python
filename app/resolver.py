@@ -50,6 +50,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_expr(expr.value)
         self._resolve_local(expr, expr.name)
 
+    def visit_set_expr(self, expr: expr.Set) -> None:
+        self._resolve_expr(expr.value)
+        self._resolve_expr(expr.object)
+
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
