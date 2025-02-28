@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import MagicMock
 from app.expr import (
     Assign,
@@ -8,6 +7,7 @@ from app.expr import (
     Grouping,
     Literal,
     Logical,
+    Set,
     Unary,
     Variable,
 )
@@ -693,6 +693,42 @@ class TestParseAll:
                         literal=None,
                         line=1,
                     ),
+                )
+            )
+        ]
+
+    def test_parses_set_expressions(self):
+        source = "foo.bar.baz = 42;"
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Set(
+                    object=Get(
+                        object=Variable(
+                            name=Token(
+                                token_type=TokenType.IDENTIFIER,
+                                lexeme="foo",
+                                literal=None,
+                                line=1,
+                            )
+                        ),
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="bar",
+                            literal=None,
+                            line=1,
+                        ),
+                    ),
+                    name=Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="baz",
+                        literal=None,
+                        line=1,
+                    ),
+                    value=Literal(value=42.0),
                 )
             )
         ]
