@@ -13,7 +13,18 @@ from app.expr import (
     Variable,
 )
 from app.scanner import Token, TokenType
-from app.stmt import Block, Expression, Function, If, Print, Return, Stmt, Var, While
+from app.stmt import (
+    Block,
+    Class,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
 
 
 class ParseError(RuntimeError): ...
@@ -227,6 +238,8 @@ class Parser:
                 return self._function("function")
             if self._match(TokenType.VAR):
                 return self._var_declaration()
+            if self._match(TokenType.CLASS):
+                return self._class_declaration()
 
             return self._statement()
         except ParseError as e:
@@ -334,7 +347,7 @@ class Parser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
 
-    def _function(self, kind: str) -> Stmt:
+    def _function(self, kind: str) -> Function:
         name = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
         self._consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind} name.")
         parameters: list[Token] = []
@@ -362,6 +375,18 @@ class Parser:
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return Var(name, initializer)
+
+    def _class_declaration(self) -> Stmt:
+        name = self._consume(TokenType.IDENTIFIER, "Expect class name.")
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+        methods: list[Function] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            methods.append(self._function("method"))
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+
+        return Class(name, methods)
 
     def _match(self, *types: TokenType) -> bool:
         for token_type in types:

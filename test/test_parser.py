@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from app.expr import Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable
 from app.parser import Parser
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Block, Expression, Function, If, Print, Return, Var, While
+from app.stmt import Block, Class, Expression, Function, If, Print, Return, Var, While
 
 
 class TestParse:
@@ -593,6 +593,52 @@ class TestParseAll:
                             )
                         ),
                     )
+                ],
+            )
+        ]
+
+    def test_parses_classes(self):
+        source = """
+        class Foo {
+            foo() {
+                print "foo!";
+            }
+            
+            bar() {
+                print "bar!";
+            }
+        }
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Class(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="Foo", literal=None, line=2
+                ),
+                methods=[
+                    Function(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="foo",
+                            literal=None,
+                            line=3,
+                        ),
+                        params=[],
+                        body=[Print(expression=Literal(value="foo!"))],
+                    ),
+                    Function(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="bar",
+                            literal=None,
+                            line=7,
+                        ),
+                        params=[],
+                        body=[Print(expression=Literal(value="bar!"))],
+                    ),
                 ],
             )
         ]
