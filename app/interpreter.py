@@ -221,7 +221,12 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
 
     def visit_class_stmt(self, stmt: Class):
         self._environment.define(stmt.name.lexeme, None)
-        klass = LoxClass(stmt.name.lexeme)
+
+        methods = {
+            method.name.lexeme: LoxFunction(method, self._environment)
+            for method in stmt.methods
+        }
+        klass = LoxClass(stmt.name.lexeme, methods)
         self._environment.assign(stmt.name, klass)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:

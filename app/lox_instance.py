@@ -15,10 +15,13 @@ class LoxInstance:
     _fields: dict[str, object] = field(default_factory=dict)
 
     def get(self, token: Token) -> object:
-        if token.lexeme not in self._fields:
-            raise RuntimeException(token, f"Undefined property {token.lexeme}.")
+        if token.lexeme in self._fields:
+            return self._fields[token.lexeme]
 
-        return self._fields[token.lexeme]
+        if method := self.klass.find_method(token.lexeme):
+            return method
+
+        raise RuntimeException(token, f"Undefined property {token.lexeme}.")
 
     def set(self, token: Token, value: object) -> None:
         self._fields[token.lexeme] = value

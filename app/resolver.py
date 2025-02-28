@@ -11,6 +11,7 @@ from app.scanner import Token
 class FunctionType(StrEnum):
     NONE = auto()
     FUNCTION = auto()
+    METHOD = auto()
 
 
 @dataclass
@@ -63,6 +64,8 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_class_stmt(self, stmt: stmt.Class) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
+        for method in stmt.methods:
+            self._resolve_function(method, FunctionType.METHOD)
 
     def visit_expression_stmt(self, stmt: stmt.Expression) -> None:
         self._resolve_expr(stmt.expression)

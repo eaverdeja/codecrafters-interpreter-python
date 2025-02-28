@@ -445,3 +445,22 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "large\n"
+
+    def test_can_execute_methods_on_instances(self, capsys):
+        source = """
+        class Spaceship {
+            fly() {
+                print "vrummm";
+            }
+        }
+        var spaceship = Spaceship();
+        spaceship.fly();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "vrummm\n"
