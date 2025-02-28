@@ -1,4 +1,15 @@
-from app.expr import Binary, Expr, Grouping, Literal, Unary, Visitor
+from app.expr import (
+    Assign,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+    Visitor,
+)
 from app.scanner import Token, TokenType
 
 
@@ -19,6 +30,18 @@ class AstPrinter(Visitor[str]):
 
     def visit_unary_expr(self, expr: Unary) -> str:
         return self._parenthisize(expr.operator.lexeme, expr.right)
+
+    def visit_assign_expr(self, expr: Assign) -> str:
+        return self._parenthisize(f"assign {expr.name.lexeme}", expr.value)
+
+    def visit_call_expr(self, expr: Call) -> str:
+        return self._parenthisize("call", expr.callee, *expr.arguments)
+
+    def visit_logical_expr(self, expr: Logical) -> str:
+        return self._parenthisize(expr.operator.lexeme, expr.left, expr.right)
+
+    def visit_variable_expr(self, expr: Variable) -> str:
+        return expr.name.lexeme
 
     def _parenthisize(self, name: str, *exprs: Expr) -> str:
         res = f"({name}"
