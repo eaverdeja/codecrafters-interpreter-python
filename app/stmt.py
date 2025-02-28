@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-from app.scanner import Token
 from app.expr import Expr
+from app.scanner import Token
 
 R = TypeVar("R")
 

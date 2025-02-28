@@ -18,6 +18,9 @@ class Visitor(Generic[R]):
     def visit_call_expr(self, expr: "Call") -> R: ...
 
     @abstractmethod
+    def visit_get_expr(self, expr: "Get") -> R: ...
+
+    @abstractmethod
     def visit_grouping_expr(self, expr: "Grouping") -> R: ...
 
     @abstractmethod
@@ -65,6 +68,15 @@ class Call(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_call_expr(self)
+
+
+@dataclass(frozen=True)
+class Get(Expr):
+    object: Expr
+    name: Token
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_get_expr(self)
 
 
 @dataclass(frozen=True)
