@@ -56,6 +56,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
         self._resolve_function(stmt, FunctionType.FUNCTION)
 
+    def visit_class_stmt(self, stmt: stmt.Class) -> None:
+        self._declare(stmt.name)
+        self._define(stmt.name)
+
     def visit_expression_stmt(self, stmt: stmt.Expression) -> None:
         self._resolve_expr(stmt.expression)
 

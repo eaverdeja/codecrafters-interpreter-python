@@ -410,3 +410,22 @@ global c
                 ),
             ]
         )
+
+    def test_can_interpret_class_declarations(self, capsys):
+        source = """
+        class DevonshireCream {
+            serveOn() {
+                return "Scones";
+            }
+        }
+
+        print DevonshireCream;
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "DevonshireCream\n"

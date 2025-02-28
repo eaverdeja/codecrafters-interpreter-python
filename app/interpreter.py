@@ -6,10 +6,12 @@ from app import expr, stmt
 from app.environment import Environment
 from app.exceptions import RuntimeException
 from app.lox_callable import LoxCallable
+from app.lox_class import LoxClass
 from app.lox_function import LoxFunction
 from app.returner import Return
 from app.stmt import (
     Block,
+    Class,
     Expression,
     Function,
     If,
@@ -197,6 +199,11 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     def visit_function_stmt(self, stmt: Function) -> None:
         function = LoxFunction(stmt, self._environment)
         self._environment.define(stmt.name.lexeme, function)
+
+    def visit_class_stmt(self, stmt: Class):
+        self._environment.define(stmt.name.lexeme, None)
+        klass = LoxClass(stmt.name.lexeme)
+        self._environment.assign(stmt.name, klass)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:
         value: object = None
