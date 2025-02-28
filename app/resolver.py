@@ -93,11 +93,11 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
     def visit_literal_expr(self, _: expr.Literal) -> None: ...
 
-    def visit_logical_expr(self, expr: expr.Logical):
+    def visit_logical_expr(self, expr: expr.Logical) -> None:
         self._resolve_expr(expr.left)
         self._resolve_expr(expr.right)
 
-    def visit_unary_expr(self, expr: expr.Unary):
+    def visit_unary_expr(self, expr: expr.Unary) -> None:
         self._resolve_expr(expr.right)
 
     def _begin_scope(self) -> None:
