@@ -92,6 +92,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
         for arg in expr.arguments:
             self._resolve_expr(arg)
 
+    def visit_get_expr(self, expr: expr.Get) -> None:
+        self._resolve_expr(expr.object)
+
     def visit_grouping_expr(self, expr: expr.Grouping) -> None:
         self._resolve_expr(expr.expression)
 

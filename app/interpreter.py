@@ -8,6 +8,7 @@ from app.exceptions import RuntimeException
 from app.lox_callable import LoxCallable
 from app.lox_class import LoxClass
 from app.lox_function import LoxFunction
+from app.lox_instance import LoxInstance
 from app.returner import Return
 from app.stmt import (
     Block,
@@ -26,6 +27,7 @@ from app.expr import (
     Binary,
     Call,
     Expr,
+    Get,
     Grouping,
     Literal,
     Logical,
@@ -115,6 +117,13 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             )
 
         return callee.call(self, arguments)
+
+    def visit_get_expr(self, expr: Get) -> object:
+        obj = self._evaluate(expr.object)
+        if not isinstance(obj, LoxInstance):
+            raise RuntimeException(expr.name, "Only instances have properties.")
+
+        return obj.get(expr.name)
 
     def visit_unary_expr(self, expr: Unary) -> object:
         right = self._evaluate(expr.right)
