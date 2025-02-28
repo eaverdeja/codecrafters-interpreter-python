@@ -26,6 +26,7 @@ class Parser:
 
     program        → declaration* EOF ;
     declaration    → varDecl
+                    | classDecl
                     | funDecl
                     | statement ;
     statement      → exprStmt
@@ -63,6 +64,7 @@ class Parser:
                     | "(" expression ")"
                     | IDENTIFIER ;
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+    classDecl      → "class" IDENTIFIER "{" function* "}" ;
     funDecl        → "fun" function ;
     function       → IDENTIFIER "(" parameters? ")" block ;
     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;

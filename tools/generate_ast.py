@@ -34,6 +34,7 @@ class GenerateAst:
                 "Block > statements: list[Stmt]",
                 "Expression > expression: Expr",
                 "Function > name: Token, params: list[Token], body: list[Stmt]",
+                "Class > name: Token, methods: list[Function]",
                 "If > condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
                 "Print > expression: Expr",
                 "While > condition: Expr, body: Stmt",

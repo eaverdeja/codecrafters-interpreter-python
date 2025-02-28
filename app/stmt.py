@@ -19,6 +19,9 @@ class Visitor(Generic[R]):
     def visit_function_stmt(self, stmt: "Function") -> R: ...
 
     @abstractmethod
+    def visit_class_stmt(self, stmt: "Class") -> R: ...
+
+    @abstractmethod
     def visit_if_stmt(self, stmt: "If") -> R: ...
 
     @abstractmethod
@@ -63,6 +66,15 @@ class Function(Stmt):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_function_stmt(self)
+
+
+@dataclass(frozen=True)
+class Class(Stmt):
+    name: Token
+    methods: list[Function]
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_class_stmt(self)
 
 
 @dataclass(frozen=True)
