@@ -20,6 +20,7 @@ class GenerateAst:
                 "Binary > left: Expr, operator: Token, right: Expr",
                 "Call > callee: Expr, paren: Token, arguments: list[Expr]",
                 "Get > object: Expr, name: Token",
+                "Set > object: Expr, name: Token, value: Expr",
                 "Grouping > expression: Expr",
                 "Literal > value: object",
                 "Logical > left: Expr, operator: Token, right: Expr",

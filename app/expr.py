@@ -21,6 +21,9 @@ class Visitor(Generic[R]):
     def visit_get_expr(self, expr: "Get") -> R: ...
 
     @abstractmethod
+    def visit_set_expr(self, expr: "Set") -> R: ...
+
+    @abstractmethod
     def visit_grouping_expr(self, expr: "Grouping") -> R: ...
 
     @abstractmethod
@@ -77,6 +80,16 @@ class Get(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_get_expr(self)
+
+
+@dataclass(frozen=True)
+class Set(Expr):
+    object: Expr
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_set_expr(self)
 
 
 @dataclass(frozen=True)
