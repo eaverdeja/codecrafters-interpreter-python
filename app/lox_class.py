@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from app.lox_callable import LoxCallable
 from app.lox_function import LoxFunction
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 @dataclass
 class LoxClass(LoxCallable):
     name: str
+    superclass: Self | None
     methods: dict[str, LoxFunction]
 
     def call(self, interpreter: "Interpreter", arguments: list[object]):

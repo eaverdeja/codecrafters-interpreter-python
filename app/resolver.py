@@ -90,6 +90,12 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._declare(stmt.name)
         self._define(stmt.name)
 
+        if stmt.superclass and stmt.superclass.name.lexeme == stmt.name.lexeme:
+            self.error_reporter(stmt.name, "A class can't inherit from itself.")
+
+        if stmt.superclass:
+            self._resolve_expr(stmt.superclass)
+
         self._begin_scope()
 
         this = Token(TokenType.THIS, "this", None, stmt.name.line)
