@@ -6,7 +6,7 @@ from app.interpreter import Interpreter, RuntimeException
 from app.parser import Parser
 from app.resolver import Resolver
 from app.scanner import Scanner, Token, TokenType
-from app.stmt import Stmt
+from app.stmt import Expression, Stmt
 
 
 class Pylox:
@@ -89,6 +89,12 @@ class Pylox:
             return
 
         self._interpreter.interpret_all(stmts)
+
+        for stmt in stmts:
+            if isinstance(stmt, Expression):
+                res = self._interpreter.interpret(stmt.expression)
+                if res:
+                    print(res)
 
     def scan_file(self, filename: str) -> list[Token]:
         with open(filename) as file:
