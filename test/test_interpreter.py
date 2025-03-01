@@ -618,3 +618,32 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "D!\n"
+
+    def test_can_call_superclass_methods(self, capsys):
+        source = """
+        class Doughnut {
+            cook() {
+                print "Fry until golden brown.";
+            }
+        }
+
+        class BostonCream < Doughnut {
+            cook() {
+                super.cook();
+                print "Pipe full of custard and coat with chocolate.";
+            }
+        }
+
+        BostonCream().cook();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert (
+            captured.out
+            == "Fry until golden brown.\nPipe full of custard and coat with chocolate.\n"
+        )

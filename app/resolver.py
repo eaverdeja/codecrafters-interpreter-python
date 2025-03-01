@@ -77,6 +77,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
         self._resolve_local(expr, expr.keyword)
 
+    def visit_super_expr(self, expr: expr.Super) -> None:
+        self._resolve_local(expr, expr.keyword)
+
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
@@ -95,6 +98,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
         if stmt.superclass:
             self._resolve_expr(stmt.superclass)
+            self._begin_scope()
+            _super = Token(TokenType.SUPER, "super", None, stmt.name.line)
+            self.scopes[-1][_super] = VariableState.IN_USE
 
         self._begin_scope()
 
@@ -109,6 +115,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
             self._resolve_function(method, fun_type)
 
         self._end_scope()
+
+        if stmt.superclass:
+            self._end_scope()
 
         self._current_class = enclosing_class
 
