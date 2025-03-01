@@ -5,6 +5,7 @@ from app.environment import Environment
 from app.lox_callable import LoxCallable
 from app.lox_instance import LoxInstance
 from app.returner import Return
+from app.scanner import Token, TokenType
 from app.stmt import Function
 
 if TYPE_CHECKING:
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
 class LoxFunction(LoxCallable):
     declaration: Function
     closure: Environment
+    is_initializer: bool
 
     def arity(self) -> int:
         return len(self.declaration.params)
@@ -28,14 +30,17 @@ class LoxFunction(LoxCallable):
 
         try:
             interpreter._execute_block(self.declaration.body, environment)
-            return None
         except Return as r:
             return r.value
+
+        if self.is_initializer:
+            this = Token(TokenType.THIS, "this", None, self.declaration.name.line)
+            return self.closure.get_at(0, this)
 
     def bind(self, instance: LoxInstance) -> Self:
         environment = Environment(enclosing=self.closure)
         environment.define("this", instance)
-        return LoxFunction(self.declaration, environment)
+        return LoxFunction(self.declaration, environment, self.is_initializer)
 
     def __str__(self):
         return f"<fn {self.declaration.name.lexeme}>"

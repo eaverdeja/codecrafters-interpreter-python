@@ -529,3 +529,23 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "bar!\n"
+
+    def test_should_return_this_if_init_is_called_directly(self, capsys):
+        source = """
+        class Foo {
+            init() {
+                print this;
+            }
+        }
+
+        var foo = Foo();
+        print foo.init();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "Foo instance\nFoo instance\nFoo instance\n"
