@@ -776,3 +776,36 @@ class TestParseAll:
                 ],
             )
         ]
+
+    def test_parses_superclasses(self):
+        source = """
+        class Bar {}
+        class Foo < Bar {}
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Class(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="Bar", literal=None, line=2
+                ),
+                superclass=None,
+                methods=[],
+            ),
+            Class(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="Foo", literal=None, line=3
+                ),
+                superclass=Variable(
+                    name=Token(
+                        token_type=TokenType.IDENTIFIER,
+                        lexeme="Bar",
+                        literal=None,
+                        line=3,
+                    )
+                ),
+                methods=[],
+            ),
+        ]
