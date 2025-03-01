@@ -290,7 +290,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         distance = self._locals.get(expr)
         if distance is None:
             return self._globals.get(name)
-        return self._environment.get_at(distance, name)
+        return self._environment.get_at(distance, name.lexeme)
 
     def _is_truthy(self, obj: object) -> bool:
         if obj is None or obj == False or obj == "nil":

@@ -34,15 +34,15 @@ class Environment:
 
         raise RuntimeException(name, f"Undefined variable '{name.lexeme}'.")
 
-    def get_at(self, distance: int, name: Token) -> object:
-        return self._ancestor(distance).values[name.lexeme]
+    def get_at(self, distance: int, name: str) -> object:
+        return self._ancestor(distance).values[name]
 
     def _ancestor(self, distance: int) -> Self:
         environment = self
         for _ in range(0, distance):
-            if not self.enclosing:
+            if not environment.enclosing:
                 raise AssertionError(
                     "Could not reach designated environment for variable."
                 )
-            environment = self.enclosing
+            environment = environment.enclosing
         return environment
