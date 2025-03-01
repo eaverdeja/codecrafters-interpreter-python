@@ -11,6 +11,7 @@ from app.expr import (
     Literal,
     Logical,
     Set,
+    This,
     Unary,
     Variable,
 )
@@ -232,6 +233,8 @@ class Parser:
             return Literal("nil")
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self._previous().literal)
+        if self._match(TokenType.THIS):
+            return This(self._previous())
         if self._match(TokenType.IDENTIFIER):
             return Variable(self._previous())
 

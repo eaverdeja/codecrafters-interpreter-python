@@ -21,6 +21,7 @@ class GenerateAst:
                 "Call > callee: Expr, paren: Token, arguments: list[Expr]",
                 "Get > object: Expr, name: Token",
                 "Set > object: Expr, name: Token, value: Expr",
+                "This > keyword: Token",
                 "Grouping > expression: Expr",
                 "Literal > value: object",
                 "Logical > left: Expr, operator: Token, right: Expr",

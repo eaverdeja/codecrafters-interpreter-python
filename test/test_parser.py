@@ -8,6 +8,7 @@ from app.expr import (
     Literal,
     Logical,
     Set,
+    This,
     Unary,
     Variable,
 )
@@ -730,5 +731,48 @@ class TestParseAll:
                     ),
                     value=Literal(value=42.0),
                 )
+            )
+        ]
+
+    def test_parses_this(self):
+        source = """
+        class Foo {
+            main() {
+                print this;
+            }
+        }
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Class(
+                name=Token(
+                    token_type=TokenType.IDENTIFIER, lexeme="Foo", literal=None, line=2
+                ),
+                methods=[
+                    Function(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="main",
+                            literal=None,
+                            line=3,
+                        ),
+                        params=[],
+                        body=[
+                            Print(
+                                expression=This(
+                                    keyword=Token(
+                                        token_type=TokenType.THIS,
+                                        lexeme="this",
+                                        literal=None,
+                                        line=4,
+                                    )
+                                )
+                            )
+                        ],
+                    )
+                ],
             )
         ]
