@@ -73,29 +73,32 @@ class Pylox:
             if not line:
                 continue
 
-            self.run(line)
+            exprs = self.run(line)
             self._had_error = False
+            if not exprs:
+                continue
+            for expression in exprs:
+                res = self._interpreter.interpret(expression)
+                if not res:
+                    continue
+                print(res)
 
-    def run(self, source: str) -> None:
+    def run(self, source: str) -> list[Expr] | None:
         tokens = self._scan(source)
         stmts = self._parse_all(tokens)
 
         if self._had_error:
-            return
+            return None
 
         resolver = Resolver(self._interpreter, error_reporter=self.resolution_error)
         resolver.resolve(stmts)
 
         if self._had_error:
-            return
+            return None
 
         self._interpreter.interpret_all(stmts)
 
-        for stmt in stmts:
-            if isinstance(stmt, Expression):
-                res = self._interpreter.interpret(stmt.expression)
-                if res:
-                    print(res)
+        return [stmt.expression for stmt in stmts if isinstance(stmt, Expression)]
 
     def scan_file(self, filename: str) -> list[Token]:
         with open(filename) as file:
