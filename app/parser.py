@@ -72,10 +72,8 @@ class Parser:
     unary          → ( "!" | "-" ) unary | call ;
     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
     arguments      → expression ( "," expression )* ;
-    primary        → "true" | "false" | "nil"
-                    | NUMBER | STRING
-                    | "(" expression ")"
-                    | IDENTIFIER ;
+    primary        → "true" | "false" | "nil" | "this"
+                    | NUMBER | STRING | IDENTIFIER | "(" expression ")" ;
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
     classDecl      → "class" IDENTIFIER "{" function* "}" ;
     funDecl        → "fun" function ;
