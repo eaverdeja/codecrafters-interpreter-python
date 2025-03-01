@@ -33,5 +33,8 @@ class LoxClass(LoxCallable):
         if name in self.methods:
             return self.methods[name]
 
+        if self.superclass:
+            return self.superclass.find_method(name)
+
     def __str__(self) -> str:
         return self.name
