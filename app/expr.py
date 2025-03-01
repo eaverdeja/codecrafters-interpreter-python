@@ -27,6 +27,9 @@ class Visitor(Generic[R]):
     def visit_this_expr(self, expr: "This") -> R: ...
 
     @abstractmethod
+    def visit_super_expr(self, expr: "Super") -> R: ...
+
+    @abstractmethod
     def visit_grouping_expr(self, expr: "Grouping") -> R: ...
 
     @abstractmethod
@@ -101,6 +104,15 @@ class This(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_this_expr(self)
+
+
+@dataclass(frozen=True)
+class Super(Expr):
+    keyword: Token
+    method: Token
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visit_super_expr(self)
 
 
 @dataclass(frozen=True)
