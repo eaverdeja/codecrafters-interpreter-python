@@ -8,6 +8,7 @@ from app.expr import (
     Literal,
     Logical,
     Set,
+    Super,
     This,
     Unary,
     Variable,
@@ -808,4 +809,39 @@ class TestParseAll:
                 ),
                 methods=[],
             ),
+        ]
+
+    def test_parses_super_keyword(self):
+        source = "super.cool();"
+
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Call(
+                    callee=Super(
+                        keyword=Token(
+                            token_type=TokenType.SUPER,
+                            lexeme="super",
+                            literal=None,
+                            line=1,
+                        ),
+                        method=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="cool",
+                            literal=None,
+                            line=1,
+                        ),
+                    ),
+                    paren=Token(
+                        token_type=TokenType.RIGHT_PAREN,
+                        lexeme=")",
+                        literal=None,
+                        line=1,
+                    ),
+                    arguments=[],
+                )
+            )
         ]
