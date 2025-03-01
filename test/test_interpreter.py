@@ -388,6 +388,7 @@ global c
         error_reporter = MagicMock()
         Resolver(interpreter, error_reporter=error_reporter).resolve(stmts)
 
+        assert len(error_reporter.call_args_list) == 2
         error_reporter.assert_has_calls(
             [
                 call(

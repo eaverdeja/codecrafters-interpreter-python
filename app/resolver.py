@@ -5,7 +5,7 @@ from enum import StrEnum, auto
 
 from app import expr, stmt
 from app.interpreter import Interpreter
-from app.scanner import Token
+from app.scanner import Token, TokenType
 
 
 class FunctionType(StrEnum):
@@ -14,15 +14,20 @@ class FunctionType(StrEnum):
     METHOD = auto()
 
 
+class VariableState(StrEnum):
+    DECLARED = auto()
+    DEFINED = auto()
+    IN_USE = auto()
+
+
 @dataclass
 class Resolver(expr.Visitor, stmt.Visitor):
     interpreter: Interpreter
     error_reporter: Callable[[Token, str], None]
 
-    scopes: Deque[dict[str, bool]] = field(default_factory=deque)
+    scopes: Deque[dict[Token, VariableState]] = field(default_factory=deque)
     _current_function: FunctionType = field(default=FunctionType.NONE)
-    _existing_vars: list[Token] = field(default_factory=list)
-    _used_vars: list[Token] = field(default_factory=list)
+    _unused_vars: list[Token] = field(default_factory=list)
 
     def resolve(self, statements: list[stmt.Stmt]) -> None:
         self._resolve(statements)
@@ -40,7 +45,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._define(stmt.name)
 
     def visit_variable_expr(self, expr: expr.Variable) -> None:
-        if len(self.scopes) > 0 and self.scopes[-1].get(expr.name.lexeme) == False:
+        if (
+            len(self.scopes) > 0
+            and self.scopes[-1].get(expr.name) == VariableState.DECLARED
+        ):
             self.error_reporter(
                 expr.name, "Can't read local variable in its own initializer."
             )
@@ -54,6 +62,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_set_expr(self, expr: expr.Set) -> None:
         self._resolve_expr(expr.value)
         self._resolve_expr(expr.object)
+
+    def visit_this_expr(self, expr: expr.This) -> None:
+        self._resolve_local(expr, expr.keyword)
 
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
         self._declare(stmt.name)
@@ -118,7 +129,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.scopes.append({})
 
     def _end_scope(self) -> None:
-        self.scopes.pop()
+        scope = self.scopes.pop()
+        for var, state in scope.items():
+            if not state == VariableState.IN_USE:
+                self._unused_vars.append(var)
 
     def _resolve(self, statements: list[stmt.Stmt]) -> None:
         for statement in statements:
@@ -148,26 +162,21 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def _declare(self, name: Token) -> None:
         if len(self.scopes) == 0:
             return
-        self.scopes[-1][name.lexeme] = False
-        self._existing_vars.append(name)
+        self.scopes[-1][name] = VariableState.DECLARED
 
     def _define(self, name: Token) -> None:
         if len(self.scopes) == 0:
             return
-        self.scopes[-1][name.lexeme] = True
+        self.scopes[-1][name] = VariableState.DEFINED
 
     def _resolve_local(self, expr: expr.Expr, name: Token) -> None:
         for i in range(len(self.scopes) - 1, -1, -1):
-            if name.lexeme in self.scopes[i]:
-                self.interpreter.resolve(expr, len(self.scopes) - 1 - i)
-                self._used_vars.append(name)
-                return
+            for token in self.scopes[i]:
+                if name.lexeme == token.lexeme:
+                    self.interpreter.resolve(expr, len(self.scopes) - 1 - i)
+                    self.scopes[i][token] = VariableState.IN_USE
+                    return
 
     def _report_unused_variables(self) -> None:
-        unused_vars = set(self._existing_vars) - set(self._used_vars)
-        if not unused_vars:
-            return
-
-        for var in self._existing_vars:
-            if var in unused_vars:
-                self.error_reporter(var, "Unused variable.")
+        for var in reversed(self._unused_vars):
+            self.error_reporter(var, "Unused variable.")
