@@ -1,4 +1,5 @@
 import sys
+import readline
 
 from app.ast_printer import AstPrinter
 from app.expr import Expr
