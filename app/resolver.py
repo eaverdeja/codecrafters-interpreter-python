@@ -11,6 +11,7 @@ from app.scanner import Token, TokenType
 class FunctionType(StrEnum):
     NONE = auto()
     FUNCTION = auto()
+    INITIALIZER = auto()
     METHOD = auto()
 
 
@@ -94,7 +95,12 @@ class Resolver(expr.Visitor, stmt.Visitor):
         this = Token(TokenType.THIS, "this", None, stmt.name.line)
         self.scopes[-1][this] = VariableState.IN_USE
         for method in stmt.methods:
-            self._resolve_function(method, FunctionType.METHOD)
+            fun_type = (
+                FunctionType.METHOD
+                if method.name.lexeme != "init"
+                else FunctionType.INITIALIZER
+            )
+            self._resolve_function(method, fun_type)
 
         self._end_scope()
 
@@ -117,6 +123,11 @@ class Resolver(expr.Visitor, stmt.Visitor):
             self.error_reporter(stmt.keyword, "Can't return from top-level code.")
             return
         if stmt.value:
+            if self._current_function == FunctionType.INITIALIZER:
+                self.error_reporter(
+                    stmt.keyword, "Can't return a value from an initializer."
+                )
+                return
             self._resolve_expr(stmt.value)
 
     def visit_while_stmt(self, stmt: stmt.While) -> None:

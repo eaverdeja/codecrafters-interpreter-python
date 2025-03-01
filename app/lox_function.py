@@ -31,16 +31,21 @@ class LoxFunction(LoxCallable):
         try:
             interpreter._execute_block(self.declaration.body, environment)
         except Return as r:
+            if self.is_initializer:
+                return self._get_this()
             return r.value
 
         if self.is_initializer:
-            this = Token(TokenType.THIS, "this", None, self.declaration.name.line)
-            return self.closure.get_at(0, this)
+            return self._get_this()
 
     def bind(self, instance: LoxInstance) -> Self:
         environment = Environment(enclosing=self.closure)
         environment.define("this", instance)
         return LoxFunction(self.declaration, environment, self.is_initializer)
+
+    def _get_this(self) -> object:
+        this = Token(TokenType.THIS, "this", None, self.declaration.name.line)
+        return self.closure.get_at(0, this)
 
     def __str__(self):
         return f"<fn {self.declaration.name.lexeme}>"

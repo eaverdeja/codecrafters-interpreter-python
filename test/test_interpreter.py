@@ -549,3 +549,53 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "Foo instance\nFoo instance\nFoo instance\n"
+
+    def test_should_not_allow_returning_something_else_from_init(self):
+        source = """
+        class Foo {
+            init() {
+                return "something else";
+            }
+        }
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        error_reporter = MagicMock()
+        Resolver(interpreter, error_reporter=error_reporter).resolve(stmts)
+
+        assert len(error_reporter.call_args_list) == 1
+        error_reporter.assert_has_calls(
+            [
+                call(
+                    Token(
+                        token_type=TokenType.RETURN,
+                        lexeme="return",
+                        literal=None,
+                        line=4,
+                    ),
+                    "Can't return a value from an initializer.",
+                )
+            ]
+        )
+
+    def test_should_allow_return_statements_in_init_but_should_return_this(
+        self, capsys
+    ):
+        source = """
+        class Foo {
+            init() {
+                return;
+            }
+        }
+
+        var foo = Foo();
+        print foo.init();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "Foo instance\n"
