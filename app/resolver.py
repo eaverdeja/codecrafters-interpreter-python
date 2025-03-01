@@ -18,6 +18,7 @@ class FunctionType(StrEnum):
 class ClassType(StrEnum):
     NONE = auto()
     CLASS = auto()
+    SUBCLASS = auto()
 
 
 class VariableState(StrEnum):
@@ -78,6 +79,12 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_local(expr, expr.keyword)
 
     def visit_super_expr(self, expr: expr.Super) -> None:
+        if self._current_class == ClassType.NONE:
+            self.error_reporter(expr.keyword, "Can't use 'super' outside of a class.")
+        elif self._current_class == ClassType.CLASS:
+            self.error_reporter(
+                expr.keyword, "Can't use 'super' in a class with no superclass."
+            )
         self._resolve_local(expr, expr.keyword)
 
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
@@ -97,6 +104,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
             self.error_reporter(stmt.name, "A class can't inherit from itself.")
 
         if stmt.superclass:
+            self._current_class = ClassType.SUBCLASS
             self._resolve_expr(stmt.superclass)
             self._begin_scope()
             _super = Token(TokenType.SUPER, "super", None, stmt.name.line)
