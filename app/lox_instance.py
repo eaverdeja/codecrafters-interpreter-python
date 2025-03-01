@@ -19,7 +19,7 @@ class LoxInstance:
             return self._fields[token.lexeme]
 
         if method := self.klass.find_method(token.lexeme):
-            return method
+            return method.bind(self)
 
         raise RuntimeException(token, f"Undefined property {token.lexeme}.")
 

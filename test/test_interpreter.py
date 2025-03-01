@@ -465,3 +465,25 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "vrummm\n"
+
+    def test_can_interpret_this(self, capsys):
+        source = """
+        class Cake {
+            taste() {
+                var adjective = "delicious";
+                print "The " + this.flavor + " cake is " + adjective + "!";
+            }
+        }
+
+        var cake = Cake();
+        cake.flavor = "German chocolate";
+        cake.taste();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "The German chocolate cake is delicious!\n"

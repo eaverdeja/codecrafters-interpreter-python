@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 from dataclasses import dataclass
 
 from app.environment import Environment
 from app.lox_callable import LoxCallable
+from app.lox_instance import LoxInstance
 from app.returner import Return
 from app.stmt import Function
 
@@ -30,6 +31,11 @@ class LoxFunction(LoxCallable):
             return None
         except Return as r:
             return r.value
+
+    def bind(self, instance: LoxInstance) -> Self:
+        environment = Environment(enclosing=self.closure)
+        environment.define("this", instance)
+        return LoxFunction(self.declaration, environment)
 
     def __str__(self):
         return f"<fn {self.declaration.name.lexeme}>"

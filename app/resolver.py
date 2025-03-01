@@ -75,8 +75,15 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_class_stmt(self, stmt: stmt.Class) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
+
+        self._begin_scope()
+
+        this = Token(TokenType.THIS, "this", None, stmt.name.line)
+        self.scopes[-1][this] = VariableState.IN_USE
         for method in stmt.methods:
             self._resolve_function(method, FunctionType.METHOD)
+
+        self._end_scope()
 
     def visit_expression_stmt(self, stmt: stmt.Expression) -> None:
         self._resolve_expr(stmt.expression)
