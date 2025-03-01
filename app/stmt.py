@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-from app.expr import Expr
+from app.expr import Expr, Variable
 from app.scanner import Token
 
 R = TypeVar("R")
@@ -71,6 +71,7 @@ class Function(Stmt):
 @dataclass(frozen=True)
 class Class(Stmt):
     name: Token
+    superclass: Variable | None
     methods: list[Function]
 
     def accept(self, visitor: Visitor[R]) -> R:

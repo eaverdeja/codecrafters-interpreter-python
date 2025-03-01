@@ -75,7 +75,7 @@ class Parser:
     primary        → "true" | "false" | "nil" | "this"
                     | NUMBER | STRING | IDENTIFIER | "(" expression ")" ;
     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-    classDecl      → "class" IDENTIFIER "{" function* "}" ;
+    classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
     funDecl        → "fun" function ;
     function       → IDENTIFIER "(" parameters? ")" block ;
     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
