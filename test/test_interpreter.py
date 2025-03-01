@@ -599,3 +599,22 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "Foo instance\n"
+
+    def test_subclasses_inherit_methods_from_superclasses(self, capsys):
+        source = """
+        class D {
+            d() {
+                print "D!";
+            }
+        }
+        class Foo < D {}
+        Foo().d();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "D!\n"
