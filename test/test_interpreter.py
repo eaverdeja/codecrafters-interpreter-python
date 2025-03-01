@@ -487,3 +487,22 @@ global c
 
         captured = capsys.readouterr()
         assert captured.out == "The German chocolate cake is delicious!\n"
+
+    def test_can_detect_invalid_uses_of_this(self, capsys):
+        source = "print this;"
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        error_reporter = MagicMock()
+        Resolver(interpreter, error_reporter=error_reporter).resolve(stmts)
+
+        assert len(error_reporter.call_args_list) == 1
+        error_reporter.assert_has_calls(
+            [
+                call(
+                    Token(
+                        token_type=TokenType.THIS, lexeme="this", literal=None, line=1
+                    ),
+                    "Can't use 'this' outside of a class.",
+                )
+            ]
+        )

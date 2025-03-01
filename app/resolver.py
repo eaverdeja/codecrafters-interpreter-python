@@ -14,6 +14,11 @@ class FunctionType(StrEnum):
     METHOD = auto()
 
 
+class ClassType(StrEnum):
+    NONE = auto()
+    CLASS = auto()
+
+
 class VariableState(StrEnum):
     DECLARED = auto()
     DEFINED = auto()
@@ -27,6 +32,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
     scopes: Deque[dict[Token, VariableState]] = field(default_factory=deque)
     _current_function: FunctionType = field(default=FunctionType.NONE)
+    _current_class: ClassType = field(default=ClassType.NONE)
     _unused_vars: list[Token] = field(default_factory=list)
 
     def resolve(self, statements: list[stmt.Stmt]) -> None:
@@ -64,6 +70,10 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_expr(expr.object)
 
     def visit_this_expr(self, expr: expr.This) -> None:
+        if self._current_class == ClassType.NONE:
+            self.error_reporter(expr.keyword, "Can't use 'this' outside of a class.")
+            return
+
         self._resolve_local(expr, expr.keyword)
 
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
@@ -73,6 +83,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_function(stmt, FunctionType.FUNCTION)
 
     def visit_class_stmt(self, stmt: stmt.Class) -> None:
+        enclosing_class = self._current_class
+        self._current_class = ClassType.CLASS
+
         self._declare(stmt.name)
         self._define(stmt.name)
 
@@ -84,6 +97,8 @@ class Resolver(expr.Visitor, stmt.Visitor):
             self._resolve_function(method, FunctionType.METHOD)
 
         self._end_scope()
+
+        self._current_class = enclosing_class
 
     def visit_expression_stmt(self, stmt: stmt.Expression) -> None:
         self._resolve_expr(stmt.expression)
