@@ -506,3 +506,26 @@ global c
                 )
             ]
         )
+
+    def test_can_initialize_classes_with_constructors(self, capsys):
+        source = """
+        class Foo {
+            init(bar) {
+                this.bar = bar;
+            }
+
+            foo() {
+                print this.bar;
+            }
+        }
+
+        Foo("bar!").foo();
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "bar!\n"
