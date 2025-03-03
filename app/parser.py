@@ -317,7 +317,7 @@ class Parser:
         else:
             initializer = self._expression_statement()
 
-        condition: Expr
+        condition: Expr | None = None
         if not self._check(TokenType.SEMICOLON):
             condition = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
@@ -333,7 +333,7 @@ class Parser:
             body = Block([body, Expression(increment)])
 
         if not condition:
-            condition = Literal("true")
+            condition = Literal(True)
         body = While(condition, body)
 
         if initializer:

@@ -395,8 +395,16 @@ class TestParseAll:
             )
         ]
 
-    def test_parses_for_statements(self):
-        source = "for (var baz = 0; baz < 3;) print baz = baz + 1;"
+    def test_parses_while_statements_2(self):
+        source = """
+        {
+            var i = 0;
+            while (i < 1) {
+                print i;
+                i = i + 1;
+            }
+        }
+        """
         tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
 
         stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
@@ -407,9 +415,9 @@ class TestParseAll:
                     Var(
                         name=Token(
                             token_type=TokenType.IDENTIFIER,
-                            lexeme="baz",
+                            lexeme="i",
                             literal=None,
-                            line=1,
+                            line=3,
                         ),
                         initializer=Literal(value=0.0),
                     ),
@@ -418,45 +426,145 @@ class TestParseAll:
                             left=Variable(
                                 name=Token(
                                     token_type=TokenType.IDENTIFIER,
-                                    lexeme="baz",
+                                    lexeme="i",
                                     literal=None,
-                                    line=1,
+                                    line=4,
                                 )
                             ),
                             operator=Token(
                                 token_type=TokenType.LESS,
                                 lexeme="<",
                                 literal=None,
-                                line=1,
+                                line=4,
                             ),
-                            right=Literal(value=3.0),
+                            right=Literal(value=1.0),
                         ),
-                        body=Print(
-                            expression=Assign(
-                                name=Token(
-                                    token_type=TokenType.IDENTIFIER,
-                                    lexeme="baz",
-                                    literal=None,
-                                    line=1,
-                                ),
-                                value=Binary(
-                                    left=Variable(
+                        body=Block(
+                            statements=[
+                                Print(
+                                    expression=Variable(
                                         name=Token(
                                             token_type=TokenType.IDENTIFIER,
-                                            lexeme="baz",
+                                            lexeme="i",
                                             literal=None,
-                                            line=1,
+                                            line=5,
                                         )
-                                    ),
-                                    operator=Token(
-                                        token_type=TokenType.PLUS,
-                                        lexeme="+",
-                                        literal=None,
-                                        line=1,
-                                    ),
-                                    right=Literal(value=1.0),
+                                    )
                                 ),
-                            )
+                                Expression(
+                                    expression=Assign(
+                                        name=Token(
+                                            token_type=TokenType.IDENTIFIER,
+                                            lexeme="i",
+                                            literal=None,
+                                            line=6,
+                                        ),
+                                        value=Binary(
+                                            left=Variable(
+                                                name=Token(
+                                                    token_type=TokenType.IDENTIFIER,
+                                                    lexeme="i",
+                                                    literal=None,
+                                                    line=6,
+                                                )
+                                            ),
+                                            operator=Token(
+                                                token_type=TokenType.PLUS,
+                                                lexeme="+",
+                                                literal=None,
+                                                line=6,
+                                            ),
+                                            right=Literal(value=1.0),
+                                        ),
+                                    )
+                                ),
+                            ]
+                        ),
+                    ),
+                ]
+            )
+        ]
+
+    def test_parses_for_statements(self):
+        source = """
+        for (var i = 0; i < 1; i = i + 1) {
+            print i;
+        }
+        """
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Block(
+                statements=[
+                    Var(
+                        name=Token(
+                            token_type=TokenType.IDENTIFIER,
+                            lexeme="i",
+                            literal=None,
+                            line=2,
+                        ),
+                        initializer=Literal(value=0.0),
+                    ),
+                    While(
+                        condition=Binary(
+                            left=Variable(
+                                name=Token(
+                                    token_type=TokenType.IDENTIFIER,
+                                    lexeme="i",
+                                    literal=None,
+                                    line=2,
+                                )
+                            ),
+                            operator=Token(
+                                token_type=TokenType.LESS,
+                                lexeme="<",
+                                literal=None,
+                                line=2,
+                            ),
+                            right=Literal(value=1.0),
+                        ),
+                        body=Block(
+                            statements=[
+                                Print(
+                                    expression=Variable(
+                                        name=Token(
+                                            token_type=TokenType.IDENTIFIER,
+                                            lexeme="i",
+                                            literal=None,
+                                            line=3,
+                                        )
+                                    )
+                                ),
+                                Expression(
+                                    expression=Assign(
+                                        name=Token(
+                                            token_type=TokenType.IDENTIFIER,
+                                            lexeme="i",
+                                            literal=None,
+                                            line=2,
+                                        ),
+                                        value=Binary(
+                                            left=Variable(
+                                                name=Token(
+                                                    token_type=TokenType.IDENTIFIER,
+                                                    lexeme="i",
+                                                    literal=None,
+                                                    line=2,
+                                                )
+                                            ),
+                                            operator=Token(
+                                                token_type=TokenType.PLUS,
+                                                lexeme="+",
+                                                literal=None,
+                                                line=2,
+                                            ),
+                                            right=Literal(value=1.0),
+                                        ),
+                                    )
+                                ),
+                            ]
                         ),
                     ),
                 ]
@@ -842,6 +950,28 @@ class TestParseAll:
                         line=1,
                     ),
                     arguments=[],
+                )
+            )
+        ]
+
+    def test_parses_booleans_correctly(self):
+        source = 'true == "true";'
+
+        tokens = Scanner(source=source, error_reporter=MagicMock()).scan_tokens()
+
+        stmts = Parser(tokens, error_reporter=MagicMock()).parse_all()
+
+        assert stmts == [
+            Expression(
+                expression=Binary(
+                    left=Literal(value=True),
+                    operator=Token(
+                        token_type=TokenType.EQUAL_EQUAL,
+                        lexeme="==",
+                        literal=None,
+                        line=1,
+                    ),
+                    right=Literal(value="true"),
                 )
             )
         ]
