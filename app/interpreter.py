@@ -46,7 +46,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     error_reporter: Callable[..., None]
 
     _globals: Environment = field(default_factory=Environment)
-    _locals: dict[Expr, int] = field(default_factory=dict)
+    _locals: dict[VariableRef, int] = field(default_factory=dict)
     _environment: Environment = field(init=False)
 
     def __post_init__(self):
@@ -145,7 +145,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         return self._lookup_variable(expr.keyword, expr)
 
     def visit_super_expr(self, expr: Super) -> object:
-        distance = self._locals.get(VariableRef(expr))
+        distance = self._locals[VariableRef(expr)]
         superclass = cast(LoxClass, self._environment.get_at(distance, "super"))
         # Offsetting the distance by one looks up “this” in the inner environment of "super"
         obj = self._environment.get_at(distance - 1, "this")
@@ -154,6 +154,10 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         if not method:
             raise RuntimeException(
                 expr.method, f"Undefined property '{expr.method.lexeme}'."
+            )
+        if not isinstance(obj, LoxInstance):
+            raise RuntimeException(
+                expr.method, "Could not retrieve instace of subclass."
             )
 
         return method.bind(obj)
@@ -193,9 +197,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             case TokenType.EQUAL_EQUAL:
                 return left is right
 
-        if self._check_number_operand(
-            left, expr.operator
-        ) and self._check_number_operand(right, expr.operator):
+        if self._check_number_operands(left, right, expr.operator):
+            left = cast(float, left)
+            right = cast(float, right)
             match expr.operator.token_type:
                 case TokenType.MINUS:
                     return left - right
@@ -314,7 +318,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         finally:
             self._environment = previous
 
-    def _lookup_variable(self, name: Token, expr: Variable) -> object:
+    def _lookup_variable(self, name: Token, expr: Variable | This) -> object:
         if not self._locals:
             return self._environment.get(expr.name)
 
@@ -342,3 +346,10 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         if not isinstance(operand, bool) and isinstance(operand, (int, float)):
             return True
         raise RuntimeException(operator, "Operand must be a number.")
+
+    def _check_number_operands(
+        self, left: object, right: object, operator: Token
+    ) -> TypeGuard[int | float]:
+        if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+            return True
+        raise RuntimeException(operator, "Operands must be numbers.")

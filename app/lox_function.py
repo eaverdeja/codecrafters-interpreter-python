@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
 from app.environment import Environment
@@ -37,7 +37,9 @@ class LoxFunction(LoxCallable):
         if self.is_initializer:
             return self.closure.get_at(0, "this")
 
-    def bind(self, instance: LoxInstance) -> Self:
+        return None
+
+    def bind(self, instance: LoxInstance) -> "LoxFunction":
         environment = Environment(enclosing=self.closure)
         environment.define("this", instance)
         return LoxFunction(self.declaration, environment, self.is_initializer)

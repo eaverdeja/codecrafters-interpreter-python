@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from app.expr import Variable
+from app.expr import Expr
 
 
 @dataclass
 class VariableRef:
-    variable: Variable
+    variable: Expr
 
     def __hash__(self):
         return id(self.variable)

@@ -29,12 +29,14 @@ class LoxClass(LoxCallable):
             return initializer.arity()
         return 0
 
-    def find_method(self, name: str) -> LoxFunction:
+    def find_method(self, name: str) -> LoxFunction | None:
         if name in self.methods:
             return self.methods[name]
 
         if self.superclass:
             return self.superclass.find_method(name)
+
+        return None
 
     def __str__(self) -> str:
         return self.name
