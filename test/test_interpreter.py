@@ -647,3 +647,39 @@ global c
             captured.out
             == "Fry until golden brown.\nPipe full of custard and coat with chocolate.\n"
         )
+
+    def test_can_properly_resolve_while_statements(self, capsys):
+        source = """
+        {
+            var i = 0;
+            while (i < 3) {
+                print i;
+                i = i + 1;
+            }
+        }
+        """
+        stmts = self.generate_statements(source)
+        interpreter = Interpreter(error_reporter=MagicMock())
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "0\n1\n2\n"
+
+    def test_can_execute_for_loops(self, capsys):
+        source = """
+        for (var i = 0; i < 2; i = i + 1) {
+            print i;
+        }
+        """
+        stmts = self.generate_statements(source)
+        error_reporter = MagicMock()
+        interpreter = Interpreter(error_reporter=error_reporter)
+        Resolver(interpreter, error_reporter=MagicMock()).resolve(stmts)
+
+        interpreter.interpret_all(stmts)
+
+        captured = capsys.readouterr()
+        assert captured.out == "0\n1\n"
+        error_reporter.assert_not_called()

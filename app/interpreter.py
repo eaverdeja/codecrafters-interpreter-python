@@ -38,6 +38,7 @@ from app.expr import (
     Variable,
 )
 from app.scanner import Token, TokenType
+from app.variable_ref import VariableRef
 
 
 @dataclass
@@ -80,7 +81,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             self.error_reporter(e)
 
     def resolve(self, expr: Expr, depth: int) -> None:
-        self._locals[expr] = depth
+        self._locals[VariableRef(expr)] = depth
 
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
@@ -144,7 +145,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         return self._lookup_variable(expr.keyword, expr)
 
     def visit_super_expr(self, expr: Super) -> object:
-        distance = self._locals.get(expr)
+        distance = self._locals.get(VariableRef(expr))
         superclass = cast(LoxClass, self._environment.get_at(distance, "super"))
         # Offsetting the distance by one looks up “this” in the inner environment of "super"
         obj = self._environment.get_at(distance - 1, "this")
@@ -291,7 +292,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             self._environment.assign(expr.name, val)
             return val
 
-        distance = self._locals.get(expr)
+        distance = self._locals.get(VariableRef(expr))
         if distance is not None:
             self._environment.assign_at(distance, expr.name, val)
         else:
@@ -317,7 +318,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         if not self._locals:
             return self._environment.get(expr.name)
 
-        distance = self._locals.get(expr)
+        distance = self._locals.get(VariableRef(expr))
         if distance is None:
             return self._globals.get(name)
         return self._environment.get_at(distance, name.lexeme)
