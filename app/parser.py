@@ -213,7 +213,7 @@ class Parser:
         arguments: list[Expr] = []
         if not self._check(TokenType.RIGHT_PAREN):
             while True:
-                if len(arguments) > 255:
+                if len(arguments) >= 255:
                     self._error(self._peek(), "Can't have more than 255 arguments.")
                 arguments.append(self._expression())
                 if not self._match(TokenType.COMMA):
@@ -225,9 +225,9 @@ class Parser:
 
     def _primary(self) -> Expr:
         if self._match(TokenType.FALSE):
-            return Literal("false")
+            return Literal(False)
         if self._match(TokenType.TRUE):
-            return Literal("true")
+            return Literal(True)
         if self._match(TokenType.NIL):
             return Literal("nil")
         if self._match(TokenType.NUMBER, TokenType.STRING):
@@ -372,7 +372,7 @@ class Parser:
         parameters: list[Token] = []
         if not self._check(TokenType.RIGHT_PAREN):
             while True:
-                if len(parameters) > 255:
+                if len(parameters) >= 255:
                     self._error(self._peek(), "Can't have more than 255 parameters.")
                 parameters.append(
                     self._consume(TokenType.IDENTIFIER, "Expect parameter name.")
@@ -400,7 +400,7 @@ class Parser:
 
         superclass = None
         if self._match(TokenType.LESS):
-            self._consume(TokenType.IDENTIFIER, "Expecte superclass name after '<'.")
+            self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
             superclass = Variable(self._previous())
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")

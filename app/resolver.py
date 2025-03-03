@@ -218,6 +218,12 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def _declare(self, name: Token) -> None:
         if len(self.scopes) == 0:
             return
+        vars_in_scope = [token.lexeme for token in self.scopes[-1]]
+        if name.lexeme in vars_in_scope:
+            self.error_reporter(
+                name, "Already a variable with this name in this scope."
+            )
+
         self.scopes[-1][name] = VariableState.DECLARED
 
     def _define(self, name: Token) -> None:

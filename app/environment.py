@@ -21,7 +21,7 @@ class Environment:
             self.enclosing.assign(name, value)
             return
 
-        raise RuntimeException(name, f"Undefined variable '{name.lexeme}'")
+        raise RuntimeException(name, f"Undefined variable '{name.lexeme}'.")
 
     def assign_at(self, distance: int, name: Token, val: object) -> None:
         self._ancestor(distance).values[name.lexeme] = val

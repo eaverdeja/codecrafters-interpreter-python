@@ -58,6 +58,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
             ) -> object:
                 return time.time()
 
+            def __str__(self):
+                return "<native fn>"
+
         self._globals.define("clock", Clock())
         self._environment = self._globals
 
@@ -82,9 +85,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     def visit_literal_expr(self, expr: Literal) -> object:
         if isinstance(expr.value, float) and expr.value.is_integer():
             return int(expr.value)
-        if expr.value == "true":
+        if expr.value is True:
             return True
-        if expr.value == "false":
+        if expr.value is False:
             return False
         return expr.value
 
@@ -149,7 +152,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         method = superclass.find_method(expr.method.lexeme)
         if not method:
             raise RuntimeException(
-                expr.method, f"Undefined property {expr.method.lexeme}."
+                expr.method, f"Undefined property '{expr.method.lexeme}'."
             )
 
         return method.bind(obj)
@@ -163,6 +166,11 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
                 return val
             case TokenType.MINUS:
                 if self._check_number_operand(right, expr.operator):
+                    # Python can't reproduce -0 by default,
+                    # and math.copysign returns floats.
+                    # So we gotta hack it, unfortunately
+                    if right == 0:
+                        return str("-0")
                     return -right
         return None
 
@@ -180,9 +188,9 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
                     expr.operator, "Operands must be two numbers or two strings."
                 )
             case TokenType.BANG_EQUAL:
-                return left != right
+                return left is not right
             case TokenType.EQUAL_EQUAL:
-                return left == right
+                return left is right
 
         if self._check_number_operand(
             left, expr.operator
@@ -315,7 +323,7 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
         return self._environment.get_at(distance, name.lexeme)
 
     def _is_truthy(self, obj: object) -> bool:
-        if obj is None or obj == False or obj == "nil":
+        if obj is None or obj is False or obj == "nil":
             return False
         return True
 

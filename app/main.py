@@ -129,12 +129,12 @@ class Pylox:
         self._token_error(token, message)
 
     def runtime_error(self, error: RuntimeException) -> None:
-        sys.stderr.write(f"{str(error)} \n[line {error.token.line}]")
+        sys.stderr.write(f"{str(error)}\n[line {error.token.line}]")
         self._had_runtime_error = True
 
     def _token_error(self, token: Token, message: str) -> None:
         if token.token_type == TokenType.EOF:
-            self._report(token.line, " at the end", message)
+            self._report(token.line, " at end", message)
         else:
             self._report(token.line, f" at '{token.lexeme}'", message)
 

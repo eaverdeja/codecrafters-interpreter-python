@@ -48,3 +48,19 @@ Note: This section is for stages 2 and beyond.
    `app/main.py`.
 3. Commit your changes and run `git push origin master` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
+
+# Testing
+
+The project contains a suite of unit tests that can help when debugging. For E2E tests, I'm leveraging the testing framework of author. This ensures this implementation of Lox adheres to the standard.
+
+https://github.com/munificent/craftinginterpreters/tree/master?tab=readme-ov-file#testing-your-implementation
+
+To run the whole suite of tests for jlox:
+```
+ dart tool/bin/test.dart jlox --interpreter ../codecrafters-interpreter-python/your_program.sh
+ ```
+
+To run a specific test case:
+```shell
+ dart tool/bin/test.dart jlox bool/equality.lox --interpreter ../codecrafters-interpreter-python/your_program.sh
+ ```
