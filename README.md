@@ -64,3 +64,8 @@ To run a specific test case:
 ```shell
  dart tool/bin/test.dart jlox bool/equality.lox --interpreter ../codecrafters-interpreter-python/your_program.sh
  ```
+
+ Right now this is passsing ~90% of the test suite:
+ ```shell
+ 218 tests passed. 21 tests failed.
+ ```
