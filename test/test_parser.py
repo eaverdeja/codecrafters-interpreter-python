@@ -27,11 +27,11 @@ class TestParse:
         expr = Parser(tokens, error_reporter=MagicMock()).parse()
 
         assert expr == Binary(
-            left=Literal(value="true"),
+            left=Literal(value=True),
             operator=Token(
                 token_type=TokenType.BANG_EQUAL, lexeme="!=", literal=None, line=1
             ),
-            right=Literal(value="false"),
+            right=Literal(value=False),
         )
 
     def test_parses_number_literals(self):
@@ -72,7 +72,7 @@ class TestParse:
             operator=Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
             right=Unary(
                 Token(token_type=TokenType.BANG, lexeme="!", literal=None, line=1),
-                right=Literal(value="true"),
+                right=Literal(value=True),
             ),
         )
 
@@ -362,16 +362,16 @@ class TestParseAll:
             Expression(
                 expression=Logical(
                     left=Logical(
-                        left=Literal(value="true"),
+                        left=Literal(value=True),
                         operator=Token(
                             token_type=TokenType.AND, lexeme="and", literal=None, line=1
                         ),
-                        right=Literal(value="false"),
+                        right=Literal(value=False),
                     ),
                     operator=Token(
                         token_type=TokenType.OR, lexeme="or", literal=None, line=1
                     ),
-                    right=Literal(value="true"),
+                    right=Literal(value=True),
                 )
             )
         ]
@@ -388,7 +388,7 @@ class TestParseAll:
 
         assert stmts == [
             While(
-                condition=Literal(value="true"),
+                condition=Literal(value=True),
                 body=Block(
                     statements=[Print(expression=Literal(value="forever and ever"))]
                 ),
@@ -527,15 +527,19 @@ class TestParseAll:
                         ),
                         body=Block(
                             statements=[
-                                Print(
-                                    expression=Variable(
-                                        name=Token(
-                                            token_type=TokenType.IDENTIFIER,
-                                            lexeme="i",
-                                            literal=None,
-                                            line=3,
+                                Block(
+                                    statements=[
+                                        Print(
+                                            expression=Variable(
+                                                name=Token(
+                                                    token_type=TokenType.IDENTIFIER,
+                                                    lexeme="i",
+                                                    literal=None,
+                                                    line=3,
+                                                )
+                                            )
                                         )
-                                    )
+                                    ]
                                 ),
                                 Expression(
                                     expression=Assign(
@@ -738,6 +742,7 @@ class TestParseAll:
                 name=Token(
                     token_type=TokenType.IDENTIFIER, lexeme="Foo", literal=None, line=2
                 ),
+                superclass=None,
                 methods=[
                     Function(
                         name=Token(
@@ -860,6 +865,7 @@ class TestParseAll:
                 name=Token(
                     token_type=TokenType.IDENTIFIER, lexeme="Foo", literal=None, line=2
                 ),
+                superclass=None,
                 methods=[
                     Function(
                         name=Token(

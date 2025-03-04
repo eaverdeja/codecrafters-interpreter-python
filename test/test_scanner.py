@@ -198,7 +198,7 @@ class TestScanTokens:
         tokens = scanner.scan_tokens()
 
         error_reporter.assert_has_calls(
-            [call(1, "Unexpected character: %")], [call(1, "Unexpected character: $")]
+            [call(1, "Unexpected character.")], [call(1, "Unexpected character.")]
         )
 
         assert tokens == [
@@ -216,7 +216,7 @@ class TestScanTokens:
         tokens = scanner.scan_tokens()
 
         error_reporter.assert_has_calls(
-            [call(1, "Unexpected character: #")], [call(2, "Unexpected character: @")]
+            [call(1, "Unexpected character.")], [call(2, "Unexpected character.")]
         )
 
         assert tokens == [
