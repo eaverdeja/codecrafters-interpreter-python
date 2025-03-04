@@ -51,7 +51,7 @@ Note: This section is for stages 2 and beyond.
 
 # Testing
 
-The project contains a suite of unit tests that can help when debugging. For E2E tests, I'm leveraging the testing framework of author. This ensures this implementation of Lox adheres to the standard.
+The project contains a suite of unit tests that can help when debugging. For E2E tests, I'm leveraging the testing framework of the author. This ensures this implementation of Lox adheres to the standard.
 
 https://github.com/munificent/craftinginterpreters/tree/master?tab=readme-ov-file#testing-your-implementation
 
