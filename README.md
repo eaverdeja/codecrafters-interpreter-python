@@ -65,7 +65,7 @@ To run a specific test case:
  dart tool/bin/test.dart jlox bool/equality.lox --interpreter ../codecrafters-interpreter-python/your_program.sh
  ```
 
- Right now this is passsing ~97% of the test suite:
+ This implementation of Lox is passsing 100% of the test suite:
  ```shell
- 232 tests passed. 7 tests failed.
+ All 239 tests passed (556 expectations).
  ```

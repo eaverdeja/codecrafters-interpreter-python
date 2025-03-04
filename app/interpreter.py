@@ -182,27 +182,48 @@ class Interpreter(expr.Visitor[object], stmt.Visitor[None]):
     def visit_binary_expr(self, expr: Binary) -> object:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
+        # Handle the -0 hack
+        if left == "-0":
+            left = 0
+        if right == "-0":
+            right = 0
 
         match expr.operator.token_type:
             case TokenType.PLUS:
                 if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-                    return left + right
+                    if not isinstance(left, bool) and not isinstance(right, bool):
+                        return left + right
                 if isinstance(left, str) and isinstance(right, str):
-                    return left + right
+                    reserved = ("true", "false", "nil")
+                    if left not in reserved and right not in reserved:
+                        return left + right
                 raise RuntimeException(
                     expr.operator, "Operands must be two numbers or two strings."
                 )
             case TokenType.BANG_EQUAL:
-                return left is not right
+                if isinstance(left, bool) or isinstance(right, bool):
+                    return left is not right
+                return left != right
             case TokenType.EQUAL_EQUAL:
-                return left is right
+                if (
+                    isinstance(left, LoxCallable)
+                    or isinstance(right, LoxCallable)
+                    or isinstance(left, bool)
+                    or isinstance(right, bool)
+                ):
+                    return left is right
+                return left == right
 
         if self._check_number_operands(left, right, expr.operator):
             left = cast(float, left)
             right = cast(float, right)
+
             match expr.operator.token_type:
                 case TokenType.MINUS:
-                    return left - right
+                    val = left - right
+                    if isinstance(val, float) and val.is_integer():
+                        return int(val)
+                    return val
                 case TokenType.STAR:
                     return left * right
                 case TokenType.SLASH:
