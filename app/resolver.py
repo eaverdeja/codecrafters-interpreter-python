@@ -39,7 +39,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
 
     def resolve(self, statements: list[stmt.Stmt]) -> None:
         self._resolve(statements)
-        self._report_unused_variables()
+        # self._report_unused_variables()
 
     def visit_block_stmt(self, stmt: stmt.Block) -> None:
         self._begin_scope()

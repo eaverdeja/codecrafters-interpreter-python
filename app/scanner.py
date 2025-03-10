@@ -170,7 +170,8 @@ class Scanner:
                     self._identifier()
                     return
 
-                self.error_reporter(self._line, f"Unexpected character.")
+                # self.error_reporter(self._line, f"Unexpected character: {c}")
+                self.error_reporter(self.line, "Unexpected character.")
 
     def _advance(self) -> str:
         char = self.source[self._current]
