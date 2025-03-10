@@ -142,7 +142,7 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self._resolve_expr(stmt.expression)
 
     def visit_return_stmt(self, stmt: stmt.Return) -> None:
-        if len(self.scopes) == 0:
+        if self._current_function == FunctionType.NONE:
             self.error_reporter(stmt.keyword, "Can't return from top-level code.")
             return
         if stmt.value:
